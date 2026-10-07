@@ -12,6 +12,11 @@ public final class KestrelSettings {
 	public static final int TRAJECTORY_COLOR = 0xFFFFFFFF;
 	public static final int TRAJECTORY_COLOR_FULL_CHARGE = 0xFF55FFFF;
 	public static final float TRAJECTORY_LINE_WIDTH = 2.0F;
+	/** Drawing only: the line starts at the bow hand and slides onto the real path, so the arc reads from behind. */
+	public static final double HAND_OFFSET_SIDE = 0.4D;
+	public static final double HAND_OFFSET_DOWN = 0.25D;
+	/** Number of simulated ticks over which the hand offset fades to zero. */
+	public static final int HAND_OFFSET_FADE_TICKS = 12;
 	public static final int IMPACT_COLOR = 0xFFFF5555;
 	public static final float IMPACT_MARKER_HALF_SIZE = 0.15F;
 	public static final float IMPACT_MARKER_LINE_WIDTH = 3.0F;

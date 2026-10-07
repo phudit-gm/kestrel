@@ -15,7 +15,9 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.gizmos.TextGizmo;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -62,23 +64,41 @@ public final class SightRenderer {
 		TrajectoryResult result = ProjectileSimulator.simulate(level, player, start, velocity, nearby,
 				KestrelSettings.TRAJECTORY_MAX_TICKS);
 
-		drawTrajectory(result, fullyCharged);
+		boolean rightHanded = (player.getUsedItemHand() == InteractionHand.MAIN_HAND)
+				== (player.getMainArm() == HumanoidArm.RIGHT);
+		float yaw = player.getViewYRot(partial) * 0.017453292F;
+		Vec3 side = new Vec3(-Math.cos(yaw), 0.0D, -Math.sin(yaw)).scale(rightHanded ? 1.0D : -1.0D);
+		drawTrajectory(result, fullyCharged, side);
 		drawLockBoxes(player, eye, range, nearby, result.hitEntity(), partial);
 		if (fullyCharged) {
 			drawFullChargeIndicator(eye, look);
 		}
 	}
 
-	private static void drawTrajectory(TrajectoryResult result, boolean fullyCharged) {
+	private static void drawTrajectory(TrajectoryResult result, boolean fullyCharged, Vec3 side) {
 		int color = fullyCharged ? KestrelSettings.TRAJECTORY_COLOR_FULL_CHARGE : KestrelSettings.TRAJECTORY_COLOR;
 		List<Vec3> points = result.points();
+		// Visual only: shift the first part of the line toward the bow hand. Physics and impact are untouched.
+		Vec3 previous = handShifted(points.get(0), 0, side);
 		for (int i = 1; i < points.size(); i++) {
-			Gizmos.line(points.get(i - 1), points.get(i), color, KestrelSettings.TRAJECTORY_LINE_WIDTH);
+			boolean last = i == points.size() - 1;
+			Vec3 current = last ? points.get(i) : handShifted(points.get(i), i, side);
+			Gizmos.line(previous, current, color, KestrelSettings.TRAJECTORY_LINE_WIDTH);
+			previous = current;
 		}
 		double h = KestrelSettings.IMPACT_MARKER_HALF_SIZE;
 		Vec3 impact = result.impact();
 		Gizmos.cuboid(new AABB(impact.x - h, impact.y - h, impact.z - h, impact.x + h, impact.y + h, impact.z + h),
 				GizmoStyle.stroke(KestrelSettings.IMPACT_COLOR, KestrelSettings.IMPACT_MARKER_LINE_WIDTH));
+	}
+
+	private static Vec3 handShifted(Vec3 point, int index, Vec3 side) {
+		double weight = 1.0D - (double) index / KestrelSettings.HAND_OFFSET_FADE_TICKS;
+		if (weight <= 0.0D) {
+			return point;
+		}
+		return point.add(side.scale(KestrelSettings.HAND_OFFSET_SIDE * weight))
+				.subtract(0.0D, KestrelSettings.HAND_OFFSET_DOWN * weight, 0.0D);
 	}
 
 	private static void drawLockBoxes(LocalPlayer player, Vec3 eye, double range, List<Entity> nearby, Entity target,
