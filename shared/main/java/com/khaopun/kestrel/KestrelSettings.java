@@ -27,6 +27,8 @@ public final class KestrelSettings {
 	/** How far in front of the camera the indicator floats, and how far below the crosshair line. */
 	public static final double FULL_CHARGE_TEXT_DISTANCE = 2.5D;
 	public static final double FULL_CHARGE_TEXT_DROP = 0.5D;
+	/** Vertical gap between stacked crosshair labels (FULL, then TARGET). */
+	public static final double CROSSHAIR_LABEL_ROW_GAP = 0.2D;
 
 	// --- Lockable entity boxes ---
 	public static final int MAX_LOCK_BOXES = 32;

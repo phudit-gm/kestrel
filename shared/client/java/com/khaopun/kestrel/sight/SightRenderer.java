@@ -69,9 +69,13 @@ public final class SightRenderer {
 		float yaw = player.getViewYRot(partial) * 0.017453292F;
 		Vec3 side = new Vec3(-Math.cos(yaw), 0.0D, -Math.sin(yaw)).scale(rightHanded ? 1.0D : -1.0D);
 		drawTrajectory(result, fullyCharged, side);
-		drawLockBoxes(player, eye, range, nearby, result.hitEntity(), partial);
+		boolean targetLocked = drawLockBoxes(player, eye, range, nearby, result.hitEntity(), partial);
 		if (fullyCharged) {
-			drawFullChargeIndicator(eye, look);
+			drawCrosshairLabel(eye, look, KestrelSettings.FULL_CHARGE_TEXT, KestrelSettings.FULL_CHARGE_TEXT_COLOR, 0);
+		}
+		// Second TARGET label near the crosshair: the one above the entity's head is easy to lose off-screen.
+		if (targetLocked) {
+			drawCrosshairLabel(eye, look, KestrelSettings.TARGET_TEXT, KestrelSettings.TARGET_TEXT_COLOR, 1);
 		}
 	}
 
@@ -101,7 +105,7 @@ public final class SightRenderer {
 				.subtract(0.0D, KestrelSettings.HAND_OFFSET_DOWN * weight, 0.0D);
 	}
 
-	private static void drawLockBoxes(LocalPlayer player, Vec3 eye, double range, List<Entity> nearby, Entity target,
+	private static boolean drawLockBoxes(LocalPlayer player, Vec3 eye, double range, List<Entity> nearby, Entity target,
 			float partial) {
 		double rangeSqr = range * range;
 		List<Entity> lockable = new ArrayList<>();
@@ -112,6 +116,7 @@ public final class SightRenderer {
 		}
 		lockable.sort(Comparator.comparingDouble(e -> e.getBoundingBox().distanceToSqr(eye)));
 
+		boolean targetDrawn = false;
 		int count = Math.min(lockable.size(), KestrelSettings.MAX_LOCK_BOXES);
 		for (int i = 0; i < count; i++) {
 			Entity entity = lockable.get(i);
@@ -122,18 +127,20 @@ public final class SightRenderer {
 			int color = isTarget ? KestrelSettings.TARGET_BOX_COLOR : KestrelSettings.LOCK_BOX_COLOR;
 			Gizmos.cuboid(box, GizmoStyle.stroke(color, KestrelSettings.LOCK_BOX_LINE_WIDTH));
 			if (isTarget) {
+				targetDrawn = true;
 				Gizmos.billboardText(KestrelSettings.TARGET_TEXT,
 						new Vec3((box.minX + box.maxX) / 2.0D, box.maxY + KestrelSettings.TARGET_TEXT_HEIGHT_ABOVE_BOX,
 								(box.minZ + box.maxZ) / 2.0D),
 						TextGizmo.Style.forColorAndCentered(KestrelSettings.TARGET_TEXT_COLOR));
 			}
 		}
+		return targetDrawn;
 	}
 
-	private static void drawFullChargeIndicator(Vec3 eye, Vec3 look) {
+	/** Floats a label in front of the camera, just below the crosshair; row 0 is the first line, 1 the next. */
+	private static void drawCrosshairLabel(Vec3 eye, Vec3 look, String text, int color, int row) {
 		Vec3 position = eye.add(look.scale(KestrelSettings.FULL_CHARGE_TEXT_DISTANCE))
-				.subtract(0.0D, KestrelSettings.FULL_CHARGE_TEXT_DROP, 0.0D);
-		Gizmos.billboardText(KestrelSettings.FULL_CHARGE_TEXT, position,
-				TextGizmo.Style.forColorAndCentered(KestrelSettings.FULL_CHARGE_TEXT_COLOR));
+				.subtract(0.0D, KestrelSettings.FULL_CHARGE_TEXT_DROP + row * KestrelSettings.CROSSHAIR_LABEL_ROW_GAP, 0.0D);
+		Gizmos.billboardText(text, position, TextGizmo.Style.forColorAndCentered(color));
 	}
 }
