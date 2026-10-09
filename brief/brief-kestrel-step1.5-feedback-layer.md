@@ -4,7 +4,7 @@
 All of Kestrel's on-screen and audio feedback is produced by one theme-driven feedback layer that matches the look of the player's installed visual mods, with every color, shape, animation, and effect configurable from a single theme file and individually switchable, so later steps add feedback only through this layer.
 
 ## Context
-- Relevant files/modules: the Kestrel repository from Step 1 (`core`, `sight`). The repository root contains `mc-1.21.11/`, `mc-26.3/`, and `shared/`. Step 1 is complete.
+- Relevant files/modules: the Kestrel repository from Step 1 (`core`, `sight`). The repository root contains `mc-1.21.11/`, `mc-26.2/`, `mc-26.3/`, and `shared/`. Step 1 is complete.
 - Current state: Step 1 draws the trajectory line, yellow target boxes, green `TARGET` boxes, and the full-charge indicator directly in `sight`. The author reports the default look does not fit the player's other mods (shader/animation/cute-UI themed visuals). The player's installed mods, shader pack, and resource pack have not been inspected by the brief author.
 
 ## Scope
@@ -21,7 +21,9 @@ All of Kestrel's on-screen and audio feedback is produced by one theme-driven fe
   - Distance fade: trajectory and effects fade near the player so they do not block the view.
   - Limits: max particles, max effect updates per second.
 - Individual on/off switches: trajectory line, impact marker, candidate boxes, hit box + `TARGET` label, full-charge indicator, particles, sounds.
-- Ship at least three starter themes selectable by name in the theme file: soft/cute (rounded square beads, pastel, gentle animation), thin clean HUD, and pixel/vanilla-style. All three use the same layer; no theme-specific code outside the theme data and its renderers.
+- Ship two themes selectable by name in the theme file: `khaopun` (default: pixel corner brackets, bead trajectory, purple-pink-cyan gradients, soft smooth animation, rainbow only while fully charged) and `classic` (the Step 1 look). Both use the same layer; no theme-specific code outside the theme data and its renderers. Full design: `brief/draft-kestrel-step1.5-theme-design.md`.
+- `/kestrel reload` client command re-reads the theme file without restarting the game.
+- Supported versions: 1.21.11, 26.2, 26.3.
 - Particles are created client-side only, never on the server.
 - Sound hooks: the sound system with per-event sound id, volume, and on/off, using vanilla sounds as placeholders for locked, unlocked, and full-charge events (only full-charge has a trigger in this step; the others stay unwired). Custom sound files are not part of this step.
 - Compatibility: rendering must remain visible and correctly layered with a shader pack enabled and with other hitbox-display mods enabled.
@@ -40,20 +42,21 @@ All of Kestrel's on-screen and audio feedback is produced by one theme-driven fe
 - Write pseudocode for the event → feedback dispatch flow before implementing it.
 
 ## Acceptance criteria
-- [ ] Project builds; all Step 1 acceptance criteria still pass.
-- [ ] Switching the theme name in the theme file changes the trajectory style, frame style, colors, and animation without code changes, for all three starter themes.
+- [ ] Project builds on all three versions (`mc-1.21.11`, `mc-26.2`, `mc-26.3`); all Step 1 acceptance criteria still pass.
+- [ ] `/kestrel reload` applies theme-file edits without restarting.
+- [ ] Switching the theme name in the theme file changes the trajectory style, frame style, colors, and animation without code changes, for both themes (`khaopun`, `classic`).
 - [ ] Editing any single color, size, or speed in the theme file changes only that element.
 - [ ] Each on/off switch disables exactly its own element and nothing else.
 - [ ] Setting "disable animation" removes all easing and bounce: state changes are instant.
 - [ ] Trajectory and effects fade near the player and do not obscure the crosshair.
 - [ ] A source search finds no literal color, size, duration, or sound-id values in rendering or logic code outside the theme data.
 - [ ] Triggering the full-charge event plays the configured placeholder sound at the configured volume; disabling sounds silences it.
-- [ ] With the player's shader pack enabled, the trajectory, boxes, and indicator remain visible and not washed out; verified in-game with the shader pack the player uses.
+- [ ] With the player's shader pack enabled, the trajectory, boxes, and indicator remain visible and not washed out; verified in-game with Complementary Unbound (the player's shader pack).
 - [ ] With another hitbox-display mod enabled, Kestrel's frames and that mod's boxes are both visible without flicker.
 - [ ] With 100+ mobs nearby, effects stay within the configured particle and update limits and the frame rate shows no noticeable drop.
 
 ## Open questions
-- The feedback layer must work in both `mc-1.21.11` and `mc-26.3`. Confirm what `shared/` contains and whether the layer's version-independent parts (events, theme data) belong there, before implementing.
-- Which visual mods, shader pack, and resource pack does the player use? Read them from the game's mods folder, shader pack folder, and resource pack folder if accessible; if the look cannot be determined from them, stop and ask the player instead of guessing from names.
+- The feedback layer must work in `mc-1.21.11`, `mc-26.2` and `mc-26.3`. Confirm what `shared/` contains and whether the layer's version-independent parts (events, theme data) belong there, before implementing.
+- RESOLVED: visual mods, shader and packs were read from the player's Prism instances; findings in the draft design file. Shader: Complementary Unbound.
 - Can the agent launch the game and see the rendered result? If not, ask the player to try each starter theme in-game and report which fits, before tuning further.
-- Which starter theme should be the default?
+- RESOLVED: default theme is `khaopun`.
