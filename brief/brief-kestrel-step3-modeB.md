@@ -4,7 +4,7 @@
 A second aim mode where, while drawing with a locked target, Kestrel turns the player's camera to the predicted intercept point at a visibly human-fast speed, the mouse switches targets instead of aiming, and control always returns to the player when drawing stops.
 
 ## Context
-- Relevant files/modules: the Kestrel project from Steps 1–2 (`core`, `sight`).
+- Relevant files/modules: the Kestrel project from Steps 1, 1.5, and 2 (`core`, `sight`, feedback layer).
 - Current state: not verified by the brief author — see Open questions.
 
 ## Scope
@@ -29,6 +29,7 @@ A second aim mode where, while drawing with a locked target, Kestrel turns the p
 - Do not modify: Step 1–2 behavior in Mode A.
 - Conventions: Mode B logic in `sight`; it reads aim points from `core` and must not duplicate prediction math. Speed, threshold, and cooldown as named constants in the settings class.
 - Dependencies: no new dependencies.
+- The flashing-while-turning and aligned states must be added only as feedback-layer events plus theme entries; no literal colors, durations, or sound ids outside the theme data.
 - Write pseudocode for the Mode B state machine (enter, rotate, aligned, switch, exit) before implementing it.
 
 ## Acceptance criteria

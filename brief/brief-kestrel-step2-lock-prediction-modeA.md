@@ -4,7 +4,7 @@
 The player can lock onto an entity with a key; Kestrel predicts where the locked target will be when the arrow arrives, shows a translucent ghost of the target there, and signals when the player's own aim puts the impact point on the ghost (Mode A).
 
 ## Context
-- Relevant files/modules: the Kestrel project from Step 1 (`core`, `sight`).
+- Relevant files/modules: the Kestrel project from Steps 1 and 1.5 (`core`, `sight`, and the feedback layer with its theme file).
 - Current state: not verified by the brief author — see Open questions.
 
 ## Scope
@@ -40,6 +40,7 @@ The player can lock onto an entity with a key; Kestrel predicts where the locked
 - Do not modify: Step 1 simulator behavior or its acceptance results.
 - Conventions: prediction logic lives in `core` and must not depend on client-only classes (the server reuses it in Step 4). All thresholds and durations as named constants in the settings class.
 - Dependencies: no new dependencies.
+- All new visuals (red box, ghost states, green alignment) and sounds must be added only as feedback-layer events plus theme entries; no literal colors, sizes, durations, or sound ids outside the theme data.
 - Write pseudocode for the motion classifier and the intercept solver before implementing them.
 
 ## Acceptance criteria

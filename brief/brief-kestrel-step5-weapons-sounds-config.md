@@ -1,7 +1,7 @@
-# Kestrel Step 5 — Crossbow, trident, sound hooks, config screen
+# Kestrel Step 5 — Crossbow, trident, sound files, config screen
 
 ## Objective
-Kestrel's preview, lock, Modes A/B, and homing work with crossbows (including Multishot and firework rockets) and tridents, play configurable sounds on key events, and expose all player settings in an in-game config screen.
+Kestrel's preview, lock, Modes A/B, and homing work with crossbows (including Multishot and firework rockets) and tridents, the player's custom sound files replace the placeholder sounds, and all player settings are exposed in an in-game config screen.
 
 ## Context
 - Relevant files/modules: the Kestrel project from Steps 1–4.
@@ -20,13 +20,13 @@ Kestrel's preview, lock, Modes A/B, and homing work with crossbows (including Mu
   - If the trident has Riptide AND the player is in water or rain (the condition where Riptide launches the player instead of throwing), disable preview, lock, Mode A, and Mode B entirely, and never control the camera.
   - Homing applies to thrown tridents the same way as arrows.
 - Sounds:
-  - Sound hooks for: target locked, target unlocked/lost, full charge reached.
-  - Each hook plays a sound from a configurable sound id; ship with placeholder vanilla sounds until custom files are provided. Volume per hook configurable; each hook can be disabled.
-- Config screen (client) exposing every player setting created in Steps 1–5: box/ghost/marker colors for every state (yellow, green, red, flashing), max box count, entity filters (players, hostile mobs, villagers, tamed animals), line-of-sight unlock timeout, red display duration, Mode B turn speed, Mode B switch threshold and cooldown, homing on/off, sound settings.
+  - The sound system and event hooks already exist from Step 1.5. In this step, add sound hooks for any events Steps 2–4 introduced that are still unwired, and replace placeholder vanilla sounds with the custom sound files the player provides.
+  - Each hook keeps a configurable sound id, volume, and on/off switch.
+- Config screen (client) exposing every player setting created in Steps 1–5, including everything in the Step 1.5 theme file: theme selection, colors for every state (yellow, green, red, flashing), shapes, animation speed and on/off, per-element on/off switches, particle limits, max box count, entity filters (players, hostile mobs, villagers, tamed animals), line-of-sight unlock timeout, red display duration, Mode B turn speed, Mode B switch threshold and cooldown, homing on/off, sound settings. The screen edits the same theme/settings data the files use; it must not introduce a second source of truth.
 
 **Out of scope**
 - Other projectile weapons beyond bow, crossbow, trident.
-- Custom sound files (provided later by the user).
+- Creating or sourcing sound files (the player provides them).
 - Server config changes beyond adding firework-rocket and trident handling to existing feature switches.
 
 ## Constraints
@@ -42,9 +42,10 @@ Kestrel's preview, lock, Modes A/B, and homing work with crossbows (including Mu
 - [ ] Firework-rocket crossbow: predicted impact within 1.5 blocks of the real impact at 20 blocks on flat ground.
 - [ ] Trident: predicted impact within 1 block of the real impact on flat ground at full charge, and in water the predicted path matches the trident's longer underwater travel.
 - [ ] Riptide trident in water or rain: no preview, no lock, no camera control; outside water and rain it behaves like a normal trident.
-- [ ] Each sound hook plays, can change sound id and volume, and can be disabled.
+- [ ] Each sound hook plays the player-provided file (or its placeholder if none is provided), can change sound id and volume, and can be disabled.
 - [ ] Every setting listed in Scope appears in the config screen, saves, and applies without restarting the game.
 
 ## Open questions
 - Confirm Steps 1–4 exist, build, and pass their acceptance criteria before starting; report anything that does not.
 - Which config-screen library to use for the project's loader (e.g. the loader's common choice)? Ask before adding it.
+- Where are the player's custom sound files? If none are provided yet, keep placeholders and report which hooks still use them.

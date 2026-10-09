@@ -4,7 +4,7 @@
 When Kestrel is installed on a server, the server grants each modded player the features the server owner allows, and arrows shot by permitted players with homing enabled steer smoothly toward their locked target; on servers without Kestrel, only the trajectory preview works.
 
 ## Context
-- Relevant files/modules: the Kestrel project from Steps 1–3 (`core`, `link`, `sight`, `flight`).
+- Relevant files/modules: the Kestrel project from Steps 1–3 including 1.5 (`core`, `link`, `sight`, `flight`, feedback layer).
 - Current state: not verified by the brief author — see Open questions.
 
 ## Scope
