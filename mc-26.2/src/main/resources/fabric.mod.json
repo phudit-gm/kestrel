@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "kestrel",
+	"version": "${version}",
+	"name": "Kestrel",
+	"description": "Bow sight: predicted arrow trajectory, impact marker, lockable-target boxes and a full-charge indicator. Client-side only.",
+	"authors": [
+		"Khaopun"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
+	"license": "MIT",
+	"icon": "assets/kestrel/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.khaopun.kestrel.Kestrel"
+		],
+		"client": [
+			"com.khaopun.kestrel.KestrelClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

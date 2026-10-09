@@ -5,6 +5,7 @@ Client-side Fabric mod for Minecraft Java. While you draw a bow it shows the pre
 | Minecraft | Java | Directory |
 |-----------|------|-----------|
 | 1.21.11   | 21   | `mc-1.21.11` |
+| 26.2      | 25   | `mc-26.2` |
 | 26.3      | 25   | `mc-26.3` |
 
 `shared/` holds the source used by both versions (physics in `core`, drawing in `sight`). Settings live in `KestrelSettings.java`.
