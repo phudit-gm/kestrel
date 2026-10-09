@@ -1,11 +1,13 @@
 package com.khaopun.kestrel.feedback;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.khaopun.kestrel.core.Prediction;
 import com.khaopun.kestrel.feedback.theme.ColorSpec;
 import com.khaopun.kestrel.feedback.theme.Easing;
 import com.khaopun.kestrel.feedback.theme.Theme;
@@ -84,6 +86,9 @@ public final class FeedbackLayer implements FeedbackListener {
 	private boolean fullIn;
 	private final Map<Integer, Candidate> candidatesIn = new HashMap<>();
 	private final Map<Integer, Candidate> hitsIn = new HashMap<>();
+	private LockInfo lockIn;
+	private GhostInfo ghostIn;
+	private final List<UnlockInfo> unlocksIn = new ArrayList<>();
 
 	// --- persistent state ---
 	private final Track trajectory = new Track();
@@ -91,6 +96,13 @@ public final class FeedbackLayer implements FeedbackListener {
 	private final Track full = new Track();
 	private final Map<Integer, CandidateState> candidates = new HashMap<>();
 	private SightFrame lastFrame;
+	private final Track lock = new Track();
+	private final Track ghost = new Track();
+	private final Track aligned = new Track();
+	private LockInfo lastLock;
+	private GhostInfo lastGhost;
+	/** Boxes of released locks, shown in red for a while: {box, startSeconds}. */
+	private final List<Object[]> unlockFx = new ArrayList<>();
 	private long lastNanos = System.nanoTime();
 
 	private final Map<String, SoundEvent> soundCache = new HashMap<>();
@@ -115,8 +127,12 @@ public final class FeedbackLayer implements FeedbackListener {
 				Candidate c = (Candidate) payload;
 				hitsIn.put(c.id(), c);
 			}
+			case TARGET_LOCKED -> lockIn = (LockInfo) payload;
+			case TARGET_UNLOCKED, TARGET_LOST -> unlocksIn.add((UnlockInfo) payload);
+			case GHOST_PREDICTED -> ghostIn = (GhostInfo) payload;
 			default -> {
-				// Events without a Step 1.5 visual (locked, unlocked, lost, aim, unreachable) are wired in later steps.
+				// AIM_ALIGNED, AIM_MOVING and TARGET_UNREACHABLE carry the same GhostInfo as GHOST_PREDICTED, whose
+				// flags the layer reads directly; no separate handling needed.
 			}
 		}
 	}
@@ -151,6 +167,7 @@ public final class FeedbackLayer implements FeedbackListener {
 		}
 
 		updateCandidates(th, dt, fadeIn, fadeOut, hitDuration, animate, seconds);
+		updateLock(th, dt, fadeIn, fadeOut, hitDuration, animate, seconds);
 
 		if (lastFrame != null) {
 			if (trajectory.visible()) {
@@ -161,6 +178,9 @@ public final class FeedbackLayer implements FeedbackListener {
 			}
 		}
 		drawCandidates(th, seconds);
+		drawLock(th, seconds);
+		drawGhost(th, seconds);
+		drawUnlockFx(th, seconds);
 		drawCrosshairLabels(th, seconds);
 
 		frameIn = null;
@@ -168,6 +188,9 @@ public final class FeedbackLayer implements FeedbackListener {
 		fullIn = false;
 		candidatesIn.clear();
 		hitsIn.clear();
+		lockIn = null;
+		ghostIn = null;
+		unlocksIn.clear();
 	}
 
 	// ---------------------------------------------------------------- state updates
@@ -323,7 +346,7 @@ public final class FeedbackLayer implements FeedbackListener {
 			double alpha = ease(th, "animation.easing", Math.max(state.appear.value, state.hit.value));
 			double k = Easing.apply(th.str("animation.hitEasing"), state.hit.value);
 			double kc = Math.max(0.0D, Math.min(1.0D, state.hit.value));
-			drawFrame(th, state.box, k, kc, alpha, floor, seconds, eye);
+			drawFrame(th, state.box, "candidate", "hit", k, kc, alpha, floor, seconds, eye);
 			if (state.hit.visible()) {
 				drawTargetLabel(th, state.box, ease(th, "animation.easing", state.hit.value), seconds);
 			}
@@ -331,13 +354,14 @@ public final class FeedbackLayer implements FeedbackListener {
 	}
 
 	/** Draws one entity frame, blending candidate -> hit style by {@code k} (may overshoot for a bounce). */
-	private void drawFrame(Theme th, AABB base, double k, double kc, double alpha, double floor, double seconds, Vec3 eye) {
-		double inflate = lerp(th.num("candidate.inflate"), th.num("hit.inflate"), k);
-		float width = (float) lerp(th.num("candidate.width"), th.num("hit.width"), k);
-		String which = kc > 0.5D ? "hit" : "candidate";
+	private void drawFrame(Theme th, AABB base, String fromKey, String toKey, double k, double kc, double alpha, double floor,
+			double seconds, Vec3 eye) {
+		double inflate = lerp(th.num(fromKey + ".inflate"), th.num(toKey + ".inflate"), k);
+		float width = (float) lerp(th.num(fromKey + ".width"), th.num(toKey + ".width"), k);
+		String which = kc > 0.5D ? toKey : fromKey;
 		String frameStyle = th.str(which + ".frame");
-		ColorSpec from = th.color("candidate.color");
-		ColorSpec to = th.color("hit.color");
+		ColorSpec from = th.color(fromKey + ".color");
+		ColorSpec to = th.color(toKey + ".color");
 		AABB box = base.inflate(inflate);
 		Vec3 center = box.getCenter();
 
@@ -346,7 +370,7 @@ public final class FeedbackLayer implements FeedbackListener {
 			Gizmos.cuboid(box, GizmoStyle.stroke(color, width));
 			return;
 		}
-		double arm = lerp(th.num("candidate.arm"), th.num("hit.arm"), k);
+		double arm = lerp(th.num(fromKey + ".arm"), th.num(toKey + ".arm"), k);
 		boolean pixels = frameStyle.equals("pixelCorners");
 		double pixel = Math.max(0.02D, th.num(which + ".pixel"));
 		float pixelSize = (float) th.num(which + ".pixelSize");
@@ -432,6 +456,93 @@ public final class FeedbackLayer implements FeedbackListener {
 		}
 		Gizmos.billboardText(text, pos,
 				TextGizmo.Style.forColorAndCentered(color).withScale((float) (TextGizmo.Style.DEFAULT_SCALE * scale)));
+	}
+
+	// ---------------------------------------------------------------- lock, ghost and release effects
+
+	private void updateLock(Theme th, double dt, double fadeIn, double fadeOut, double hitDuration, boolean animate,
+			double seconds) {
+		boolean lockOn = th.enabled("lock");
+		if (lockIn != null) {
+			lastLock = lockIn;
+		}
+		lock.update(lockIn != null && lockOn, dt, fadeIn, fadeOut, animate);
+		if (lock.entered) {
+			playSound(th, "locked");
+		}
+		if (ghostIn != null) {
+			lastGhost = ghostIn;
+		}
+		ghost.update(ghostIn != null && th.enabled("ghost"), dt, fadeIn, fadeOut, animate);
+		aligned.update(ghostIn != null && ghostIn.aligned(), dt, hitDuration, hitDuration, animate);
+		if (lockOn) {
+			for (UnlockInfo info : unlocksIn) {
+				unlockFx.add(new Object[] {info.box(), seconds});
+				playSound(th, "unlocked");
+			}
+		}
+	}
+
+	private void drawLock(Theme th, double seconds) {
+		if (!lock.visible() || lastLock == null) {
+			return;
+		}
+		double alpha = ease(th, "animation.easing", lock.value);
+		double k = Easing.apply(th.str("animation.hitEasing"), aligned.value);
+		Vec3 eye = lastFrame != null ? lastFrame.eye() : lastLock.box().getCenter();
+		drawFrame(th, lastLock.box(), "locked", "aligned", k, Math.max(0.0D, Math.min(1.0D, aligned.value)), alpha,
+				th.num("minAlpha"), seconds, eye);
+	}
+
+	private void drawGhost(Theme th, double seconds) {
+		if (!ghost.visible() || lastGhost == null) {
+			return;
+		}
+		boolean unreachable = lastGhost.kind() == Prediction.Kind.UNREACHABLE;
+		boolean faded = lastGhost.kind() == Prediction.Kind.FADED;
+		String fromKey = unreachable ? "unreachable" : "ghost";
+		double alpha = ease(th, "animation.easing", ghost.value) * (faded ? th.num("ghost.fadedAlpha") : 1.0D);
+		AABB box = lastGhost.ghost();
+		if (faded) {
+			ThreadLocalRandom rnd = ThreadLocalRandom.current();
+			double j = th.num("ghost.jitter");
+			box = box.move((rnd.nextDouble() - 0.5D) * 2.0D * j, (rnd.nextDouble() - 0.5D) * j, (rnd.nextDouble() - 0.5D) * 2.0D * j);
+		}
+		double k = unreachable ? 0.0D : Easing.apply(th.str("animation.hitEasing"), aligned.value);
+		double kc = unreachable ? 0.0D : Math.max(0.0D, Math.min(1.0D, aligned.value));
+		Vec3 eye = lastFrame != null ? lastFrame.eye() : box.getCenter();
+		drawFrame(th, box, fromKey, "aligned", k, kc, alpha, th.num("minAlpha"), seconds, eye);
+
+		double fillAlpha = th.num("ghost.fillAlpha");
+		// Filled boxes are not drawn by shader packs, so the fill is only added without one.
+		if (fillAlpha > 0.0D && !IrisCompat.shaderPackInUse()) {
+			int fill = ColorSpec.lerp(th.color(fromKey + ".color").at(0.5D, seconds), th.color("aligned.color").at(0.5D, seconds), kc);
+			Gizmos.cuboid(box, GizmoStyle.fill(ColorSpec.withAlpha(fill, alpha * fillAlpha)));
+		}
+		if (unreachable) {
+			text(th.str("ghost.unreachableText"),
+					new Vec3((box.minX + box.maxX) / 2.0D, box.maxY + th.num("ghost.labelHeightAbove"), (box.minZ + box.maxZ) / 2.0D),
+					th.color("unreachable.color").at(0.5D, seconds), alpha, th.num("ghost.labelScale"));
+		}
+	}
+
+	private void drawUnlockFx(Theme th, double seconds) {
+		double duration = th.num("unlock.duration");
+		double fadeFraction = Math.max(0.01D, th.num("unlock.fadeFraction"));
+		boolean animate = th.bool("animation.enabled");
+		double floor = th.num("minAlpha");
+		for (Iterator<Object[]> it = unlockFx.iterator(); it.hasNext();) {
+			Object[] fx = it.next();
+			double elapsed = seconds - (Double) fx[1];
+			if (elapsed >= duration) {
+				it.remove();
+				continue;
+			}
+			double alpha = animate ? Math.min(1.0D, (duration - elapsed) / (duration * fadeFraction)) : 1.0D;
+			AABB box = (AABB) fx[0];
+			Vec3 eye = lastFrame != null ? lastFrame.eye() : box.getCenter();
+			drawFrame(th, box, "unlock", "unlock", 0.0D, 0.0D, alpha, floor, seconds, eye);
+		}
 	}
 
 	// ---------------------------------------------------------------- sound and particles

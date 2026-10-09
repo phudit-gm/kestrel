@@ -1,27 +1,30 @@
 package com.khaopun.kestrel.sight;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import com.khaopun.kestrel.KestrelSettings;
 import com.khaopun.kestrel.core.ArrowPhysics;
 import com.khaopun.kestrel.core.LockRange;
+import com.khaopun.kestrel.core.Prediction;
+import com.khaopun.kestrel.core.Predictor;
 import com.khaopun.kestrel.core.ProjectileSimulator;
 import com.khaopun.kestrel.core.TrajectoryResult;
 import com.khaopun.kestrel.feedback.Candidate;
 import com.khaopun.kestrel.feedback.FeedbackBus;
 import com.khaopun.kestrel.feedback.FeedbackEvent;
+import com.khaopun.kestrel.feedback.GhostInfo;
 import com.khaopun.kestrel.feedback.SightFrame;
 import com.khaopun.kestrel.feedback.ThemeStore;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -36,6 +39,7 @@ public final class SightController {
 
 	public static void update(Minecraft mc) {
 		try {
+			LockController.emitFrame(mc, mc.getDeltaTracker().getGameTimeDeltaPartialTick(false));
 			emitEvents(mc);
 		} finally {
 			FeedbackBus.frameEnd();
@@ -84,14 +88,7 @@ public final class SightController {
 			FeedbackBus.emit(FeedbackEvent.FULL_CHARGE, frame);
 		}
 
-		double rangeSqr = range * range;
-		List<Entity> lockable = new ArrayList<>();
-		for (Entity entity : nearby) {
-			if (LockFilter.isLockable(player, entity) && entity.getBoundingBox().distanceToSqr(eye) <= rangeSqr) {
-				lockable.add(entity);
-			}
-		}
-		lockable.sort(Comparator.comparingDouble(e -> e.getBoundingBox().distanceToSqr(eye)));
+		List<Entity> lockable = LockController.lockable(player, level, eye, nearby);
 
 		int count = Math.min(lockable.size(), ThemeStore.theme().integer("limits.maxCandidates"));
 		for (int i = 0; i < count; i++) {
@@ -104,5 +101,48 @@ public final class SightController {
 				FeedbackBus.emit(FeedbackEvent.TARGET_UNDER_TRAJECTORY, candidate);
 			}
 		}
+
+		emitPrediction(mc, player, start, power, result);
+	}
+
+	/** Predicts where the locked target will be and announces whether the arrow's path touches that spot. */
+	private static void emitPrediction(Minecraft mc, LocalPlayer player, Vec3 start, float power, TrajectoryResult result) {
+		Entity target = LockController.target(mc);
+		if (target == null || LockController.motion().isEmpty()) {
+			return;
+		}
+		AABB box = target.getBoundingBox();
+		double bodyHeight = (box.maxY - box.minY) / 2.0D;
+		Prediction prediction = Predictor.predict(LockController.motion(), start, power, pingMillis(mc, player), bodyHeight);
+		// The box is where the target is now, moved by the difference to the predicted position.
+		Vec3 shift = prediction.aim().subtract(target.position());
+		AABB ghost = box.move(shift);
+
+		boolean aligned = prediction.kind() != Prediction.Kind.UNREACHABLE && pathTouches(result.points(), ghost);
+		GhostInfo info = new GhostInfo(target.getId(), ghost, prediction.kind(), aligned);
+		FeedbackBus.emit(FeedbackEvent.GHOST_PREDICTED, info);
+		if (prediction.kind() == Prediction.Kind.UNREACHABLE) {
+			FeedbackBus.emit(FeedbackEvent.TARGET_UNREACHABLE, info);
+		}
+		FeedbackBus.emit(aligned ? FeedbackEvent.AIM_ALIGNED : FeedbackEvent.AIM_MOVING, info);
+	}
+
+	/** True if any step of the simulated path passes through the ghost box (grown by the arrow's hit margin). */
+	private static boolean pathTouches(List<Vec3> points, AABB ghost) {
+		AABB grown = ghost.inflate(ArrowPhysics.ENTITY_HIT_MARGIN);
+		for (int i = 1; i < points.size(); i++) {
+			if (grown.contains(points.get(i)) || grown.clip(points.get(i - 1), points.get(i)).isPresent()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static double pingMillis(Minecraft mc, LocalPlayer player) {
+		if (mc.getConnection() == null) {
+			return 0.0D;
+		}
+		PlayerInfo info = mc.getConnection().getPlayerInfo(player.getUUID());
+		return info == null ? 0.0D : info.getLatency();
 	}
 }

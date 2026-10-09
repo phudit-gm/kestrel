@@ -58,6 +58,53 @@
     "roundCorners": true
   },
 
+  "locked": {
+    "frame": "pixelCorners",
+    "color": { "mode": "gradient", "stops": ["#7FF0FF", "#B58CFF"] },
+    "inflate": 0.14,
+    "arm": 0.36,
+    "pixelSize": 6.0,
+    "roundCorners": true
+  },
+
+  "aligned": {
+    "frame": "pixelCorners",
+    "color": { "mode": "gradient", "stops": ["#7CFFB0", "#E6FFF0"] },
+    "inflate": 0.2,
+    "arm": 0.4,
+    "pixelSize": 6.0,
+    "roundCorners": true
+  },
+
+  "unlock": {
+    "frame": "pixelCorners",
+    "color": { "mode": "gradient", "stops": ["#FF4D6D", "#FF9AA8"] },
+    "inflate": 0.14,
+    "arm": 0.36,
+    "pixelSize": 6.0,
+    "roundCorners": true,
+    "duration": 1.0
+  },
+
+  "ghost": {
+    "frame": "pixelCorners",
+    "color": { "mode": "gradient", "stops": ["#B58CFF80", "#FF7AC680"] },
+    "inflate": 0.08,
+    "arm": 0.3,
+    "pixelSize": 5.0,
+    "roundCorners": true,
+    "fillAlpha": 0.18
+  },
+
+  "unreachable": {
+    "frame": "pixelCorners",
+    "color": { "mode": "gradient", "stops": ["#FF4D6D", "#FF9AA8"] },
+    "inflate": 0.08,
+    "arm": 0.3,
+    "pixelSize": 5.0,
+    "roundCorners": true
+  },
+
   "label": {
     "color": "#FF9AD5"
   },
@@ -68,7 +115,9 @@
   },
 
   "sounds": {
-    "fullCharge": { "enabled": true, "volume": 0.35, "pitch": 1.5 }
+    "fullCharge": { "enabled": true, "volume": 0.35, "pitch": 1.5 },
+    "locked":     { "enabled": true, "volume": 0.3,  "pitch": 1.7 },
+    "unlocked":   { "enabled": true, "volume": 0.3,  "pitch": 0.8 }
   },
 
   "particles": {

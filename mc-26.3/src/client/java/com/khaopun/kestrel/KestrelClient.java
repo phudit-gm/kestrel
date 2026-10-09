@@ -2,9 +2,11 @@ package com.khaopun.kestrel;
 
 import com.khaopun.kestrel.feedback.FeedbackLayer;
 import com.khaopun.kestrel.feedback.ReloadCommand;
+import com.khaopun.kestrel.sight.LockKey;
 import com.khaopun.kestrel.sight.SightController;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
@@ -14,6 +16,7 @@ public class KestrelClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		FeedbackLayer.init();
+		LockKey.register(KeyMappingHelper::registerKeyMapping);
 		// Fires while the per-frame gizmo collector is active, so gizmos added here are drawn this frame.
 		LevelRenderEvents.BEFORE_GIZMOS.register(context -> SightController.update(Minecraft.getInstance()));
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) -> dispatcher.register(

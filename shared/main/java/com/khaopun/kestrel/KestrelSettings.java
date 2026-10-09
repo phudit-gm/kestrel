@@ -9,6 +9,28 @@ public final class KestrelSettings {
 	/** Safety cap on simulated ticks per frame. */
 	public static final int TRAJECTORY_MAX_TICKS = 300;
 
+	// --- Target lock (Step 2) ---
+	/** The lock key picks the candidate nearest the crosshair, but only within this angle of the view direction. */
+	public static final double LOCK_MAX_ANGLE_DEGREES = 60.0D;
+	/** While locked, the key switches to another candidate only if the crosshair is within this angle of it. */
+	public static final double LOCK_SWITCH_ANGLE_DEGREES = 6.0D;
+	/** Unlock after the target has had no line of sight for this many ticks. */
+	public static final int LOCK_NO_LINE_OF_SIGHT_TICKS = 40;
+
+	// --- Motion tracking and prediction (Step 2) ---
+	/** Number of recent ticks of target movement kept. */
+	public static final int TARGET_HISTORY_TICKS = 10;
+	/** Fewer movement samples than this and the target is assumed stationary. */
+	public static final int MOTION_MIN_SAMPLES = 4;
+	/** Mean horizontal speed (blocks per tick) below which a target counts as stationary. */
+	public static final double STATIONARY_SPEED = 0.01D;
+	/** Mean deviation from the average velocity, relative to speed, above which movement counts as erratic. */
+	public static final double CONSTANT_MAX_VARIATION = 0.35D;
+	/** Longest arrow flight (ticks) the intercept solver looks at. */
+	public static final int INTERCEPT_MAX_FLIGHT_TICKS = 200;
+	/** Milliseconds per tick, used to turn ping into ticks. */
+	public static final double MILLIS_PER_TICK = 50.0D;
+
 	// --- Lock filter (Step 5 will expose these in a config screen) ---
 	public static final boolean LOCK_HOSTILE_MOBS = true;
 	public static final boolean LOCK_PLAYERS = true;

@@ -10,16 +10,18 @@ public enum FeedbackEvent {
 	CANDIDATE_IN_RANGE,
 	TARGET_UNDER_TRAJECTORY,
 	FULL_CHARGE,
-	/** Later (Step 2). */
+	/** Every frame while a target is locked. Payload {@link LockInfo}. */
 	TARGET_LOCKED,
-	/** Later (Step 2). */
+	/** Once, when the player unlocks (key, or the held item stops being a bow). Payload {@link UnlockInfo}. */
 	TARGET_UNLOCKED,
-	/** Later (Step 2). */
+	/** Once, when the lock is lost by itself (died, out of range, no line of sight). Payload {@link UnlockInfo}. */
 	TARGET_LOST,
-	/** Later (Step 3). */
+	/** Every frame the predicted position is known (locked and drawing). Payload {@link GhostInfo}. */
+	GHOST_PREDICTED,
+	/** Every frame the impact point touches the ghost. Payload {@link GhostInfo}. */
 	AIM_ALIGNED,
-	/** Later (Step 3). */
+	/** Every frame the ghost is known but the impact point is not on it. Payload {@link GhostInfo}. */
 	AIM_MOVING,
-	/** Later (Step 2). */
+	/** Every frame the locked target cannot be reached. Payload {@link GhostInfo}. */
 	TARGET_UNREACHABLE
 }

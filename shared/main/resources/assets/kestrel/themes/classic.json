@@ -8,7 +8,9 @@
     "hit": true,
     "fullCharge": true,
     "particles": true,
-    "sounds": true
+    "sounds": true,
+    "lock": true,
+    "ghost": true
   },
 
   "animation": {
@@ -79,6 +81,72 @@
     "color": "#00FF00",
     "width": 2.0,
     "inflate": 0.08,
+    "arm": 0.3,
+    "pixel": 0.09,
+    "pixelSize": 5.0,
+    "roundCorners": false
+  },
+
+  "locked": {
+    "_comment": "frame around the locked target; turns into 'aligned' while the arrow path touches the ghost",
+    "frame": "box",
+    "color": "#FFAA00",
+    "width": 3.0,
+    "inflate": 0.1,
+    "arm": 0.3,
+    "pixel": 0.09,
+    "pixelSize": 5.0,
+    "roundCorners": false
+  },
+
+  "aligned": {
+    "frame": "box",
+    "color": "#00FF00",
+    "width": 3.0,
+    "inflate": 0.1,
+    "arm": 0.3,
+    "pixel": 0.09,
+    "pixelSize": 5.0,
+    "roundCorners": false
+  },
+
+  "unlock": {
+    "_comment": "red frame shown for 'duration' seconds after a lock ends",
+    "frame": "box",
+    "color": "#FF3030",
+    "width": 3.0,
+    "inflate": 0.1,
+    "arm": 0.3,
+    "pixel": 0.09,
+    "pixelSize": 5.0,
+    "roundCorners": false,
+    "duration": 1.0,
+    "fadeFraction": 0.4
+  },
+
+  "ghost": {
+    "_comment": "predicted position of the locked target. fadedAlpha/jitter apply to erratic targets; fillAlpha 0 = outline only",
+    "frame": "box",
+    "color": "#FFFFFF",
+    "width": 2.0,
+    "inflate": 0.05,
+    "arm": 0.3,
+    "pixel": 0.09,
+    "pixelSize": 5.0,
+    "roundCorners": false,
+    "fadedAlpha": 0.5,
+    "jitter": 0.12,
+    "fillAlpha": 0.0,
+    "unreachableText": "OUT OF REACH",
+    "labelHeightAbove": 0.35,
+    "labelScale": 1.0
+  },
+
+  "unreachable": {
+    "frame": "box",
+    "color": "#FF3030",
+    "width": 2.0,
+    "inflate": 0.05,
     "arm": 0.3,
     "pixel": 0.09,
     "pixelSize": 5.0,

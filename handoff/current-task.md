@@ -30,3 +30,16 @@ Instance notes: ptp removed from the two original instances (jars in `C:\dev\min
 
 ## Step 2 progress
 See the end of this file (updated as work lands).
+
+### Step 2 status (2026-10-09, code written, builds on all 3 versions, NOT yet tested in game)
+Done:
+- `core`: `TargetMotion` (10-tick history, classify stationary / constant velocity / erratic), `InterceptSolver` (closed-form ballistic, verified numerically: |v0| = speed and arrow lands on target), `Predictor`/`Prediction`. Pseudocode in `brief/step2-pseudocode.md`. Thresholds in `KestrelSettings`.
+- `sight/LockController` (key press logic, unlock rules, motion recording per client tick), `sight/LockKey` (rebindable key, default R, category Kestrel; registrar passed in per version because Fabric's key API class name differs), prediction + alignment test in `SightController.emitPrediction` (trajectory polyline vs ghost box grown by the arrow hit margin).
+- Events: TARGET_LOCKED, TARGET_UNLOCKED, TARGET_LOST, GHOST_PREDICTED, AIM_ALIGNED, AIM_MOVING, TARGET_UNREACHABLE; payloads LockInfo / UnlockInfo / GhostInfo.
+- Feedback layer + themes: locked frame, aligned (green), unlock (red, `unlock.duration` s), ghost (clear / faded+jitter / unreachable red + "OUT OF REACH"), lock/unlock sounds (khaopun only). Switches `enabled.lock`, `enabled.ghost`.
+Known gaps / decisions to confirm with the user:
+- The ghost is currently an outline box (plus a translucent fill when no shader pack is active), NOT a translucent render of the target's own model/skin as the brief asks. A model ghost needs a per-version entity-renderer spike (26.x render-state API).
+- Prediction ignores vertical movement (target y is kept), so a falling/flying target is predicted at its current height.
+- Lock key picks the nearest candidate within 60 degrees of the view direction (brief gave no limit); switch angle 6 degrees. Both in `KestrelSettings`.
+- Ping comes from `PlayerInfo.getLatency()`; 0 in singleplayer.
+- Acceptance items (8 of 10 hits at 20-30 blocks, strafing = erratic, etc.) need in-game verification by the user.

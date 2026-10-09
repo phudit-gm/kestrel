@@ -1,4 +1,6 @@
 {
 	"kestrel.command.reload.done": "Kestrel theme reloaded: %s",
-	"kestrel.command.reload.problem": "Kestrel: %s"
+	"kestrel.command.reload.problem": "Kestrel: %s",
+	"key.kestrel.lock": "Lock / switch / unlock target",
+	"key.category.kestrel.main": "Kestrel"
 }
