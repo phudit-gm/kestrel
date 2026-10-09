@@ -249,7 +249,7 @@ public final class FeedbackLayer implements FeedbackListener {
 					double t = d / total;
 					int color = trajectoryColor(th, normal, charged, fullMix, t, seconds, floor, alpha, pos, frame.eye());
 					double bead = size * (1.0D - taper + taper * Math.sin(Math.PI * t));
-					Gizmos.point(pos, color, (float) Math.max(1.0D, bead));
+					point(th, pos, color, (float) Math.max(1.0D, bead));
 				}
 			}
 		}
@@ -287,12 +287,12 @@ public final class FeedbackLayer implements FeedbackListener {
 			}
 			case "pixelCross" -> {
 				float size = (float) th.num("impact.pixelSize");
-				Gizmos.point(c, core, size);
+				point(th, c, core, size);
 				for (int axis = 0; axis < 3; axis++) {
 					for (int sign = -1; sign <= 1; sign += 2) {
 						for (int step = 1; step <= 2; step++) {
 							double d = sign * h * step / 2.0D;
-							Gizmos.point(c.add(axis == 0 ? d : 0, axis == 1 ? d : 0, axis == 2 ? d : 0), core, size);
+							point(th, c.add(axis == 0 ? d : 0, axis == 1 ? d : 0, axis == 2 ? d : 0), core, size);
 						}
 					}
 				}
@@ -366,7 +366,7 @@ public final class FeedbackLayer implements FeedbackListener {
 					for (int s = round ? 1 : 0; s <= steps; s++) {
 						double t = (double) s / steps;
 						Vec3 pos = pointAlong(origin, axis, dir * length * t);
-						Gizmos.point(pos, frameColor(th, from, to, kc, t, seconds, floor, alpha, pos, eye), pixelSize);
+						point(th, pos, frameColor(th, from, to, kc, t, seconds, floor, alpha, pos, eye), pixelSize);
 					}
 				} else {
 					Vec3 a = pointAlong(origin, axis, 0.0D);
@@ -498,6 +498,24 @@ public final class FeedbackLayer implements FeedbackListener {
 	}
 
 	// ---------------------------------------------------------------- helpers
+
+	/**
+	 * Draws a dot. Shader packs may not draw the game's point primitive, so when a shader pack is active (or the theme
+	 * forces it) the dot is drawn as a small 3-axis cross of lines instead, which shader packs do draw.
+	 */
+	private void point(Theme th, Vec3 pos, int color, float size) {
+		String mode = th.str("compat.points");
+		boolean asLines = mode.equals("lines") || (mode.equals("auto") && IrisCompat.shaderPackInUse());
+		if (!asLines) {
+			Gizmos.point(pos, color, size);
+			return;
+		}
+		double h = size * th.num("compat.pointLineScale");
+		float width = (float) th.num("compat.pointLineWidth");
+		Gizmos.line(pos.add(-h, 0.0D, 0.0D), pos.add(h, 0.0D, 0.0D), color, width);
+		Gizmos.line(pos.add(0.0D, -h, 0.0D), pos.add(0.0D, h, 0.0D), color, width);
+		Gizmos.line(pos.add(0.0D, 0.0D, -h), pos.add(0.0D, 0.0D, h), color, width);
+	}
 
 	private static double easedFull(Theme th) {
 		return Math.max(0.0D, Math.min(1.0D, Easing.apply(th.str("animation.fullEasing"), INSTANCE.full.value)));

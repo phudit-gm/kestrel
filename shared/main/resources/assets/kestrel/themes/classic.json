@@ -29,6 +29,13 @@
     "maxUpdatesPerSecond": 20
   },
 
+  "compat": {
+    "_comment": "points: auto = draw dots as small line crosses while a shader pack is active; lines = always; points = never",
+    "points": "auto",
+    "pointLineScale": 0.007,
+    "pointLineWidth": 3.0
+  },
+
   "minAlpha": 0.0,
   "distanceFade": { "start": 0.0, "end": 0.0 },
 
