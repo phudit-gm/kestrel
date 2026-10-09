@@ -1,1 +1,4 @@
-{}
+{
+	"kestrel.command.reload.done": "Kestrel theme reloaded: %s",
+	"kestrel.command.reload.problem": "Kestrel: %s"
+}

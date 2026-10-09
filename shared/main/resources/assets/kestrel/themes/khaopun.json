@@ -1,0 +1,78 @@
+{
+  "_comment": "khaopun: cute pixel brackets, soft purple-pink-cyan gradients, smooth motion, rainbow only at full charge. Anything not listed here falls back to classic.",
+
+  "animation": {
+    "enabled": true,
+    "speed": 1.0,
+    "fadeIn": 0.18,
+    "fadeOut": 0.25,
+    "hitDuration": 0.22,
+    "fullDuration": 0.35,
+    "easing": "outCubic",
+    "hitEasing": "outBack",
+    "fullEasing": "outBack"
+  },
+
+  "limits": {
+    "maxCandidates": 16
+  },
+
+  "minAlpha": 0.35,
+  "distanceFade": { "start": 1.5, "end": 4.0 },
+
+  "trajectory": {
+    "style": "beads",
+    "beadSize": 6.0,
+    "spacing": 0.7,
+    "taper": 0.5,
+    "color": { "mode": "gradient", "stops": ["#6A2DB8E6", "#FF7AC6E6", "#7FF0FFE6"] },
+    "colorFull": { "mode": "rainbow", "speed": 0.5, "span": 1.0, "saturation": 0.65, "brightness": 1.0, "alpha": 0.9 }
+  },
+
+  "impact": {
+    "style": "pixelCross",
+    "size": 0.16,
+    "pixelSize": 7.0,
+    "color": "#4A1A8C",
+    "edgeWidth": 2.0,
+    "edgeColor": "#FF9AD5"
+  },
+
+  "candidate": {
+    "frame": "pixelCorners",
+    "color": { "mode": "gradient", "stops": ["#6A2DB8B0", "#FF7AC6B0"] },
+    "inflate": 0.1,
+    "arm": 0.28,
+    "pixel": 0.09,
+    "pixelSize": 5.0,
+    "roundCorners": true
+  },
+
+  "hit": {
+    "frame": "pixelCorners",
+    "color": { "mode": "gradient", "stops": ["#FF7AC6", "#FFFFFF"] },
+    "inflate": 0.17,
+    "arm": 0.34,
+    "pixel": 0.09,
+    "pixelSize": 6.0,
+    "roundCorners": true
+  },
+
+  "label": {
+    "color": "#FF9AD5"
+  },
+
+  "fullCharge": {
+    "color": { "mode": "rainbow", "speed": 0.5, "span": 0.6, "saturation": 0.6, "brightness": 1.0, "alpha": 1.0 },
+    "pulse": 0.4
+  },
+
+  "sounds": {
+    "fullCharge": { "enabled": true, "volume": 0.35, "pitch": 1.5 }
+  },
+
+  "particles": {
+    "fullCharge": { "enabled": true },
+    "hit": { "enabled": true }
+  }
+}

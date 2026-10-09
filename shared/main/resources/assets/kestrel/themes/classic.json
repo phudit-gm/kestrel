@@ -1,0 +1,111 @@
+{
+  "_comment": "classic: the Step 1 look. Also the fallback for any value another theme leaves out, so it must list every key.",
+
+  "enabled": {
+    "trajectory": true,
+    "impact": true,
+    "candidates": true,
+    "hit": true,
+    "fullCharge": true,
+    "particles": true,
+    "sounds": true
+  },
+
+  "animation": {
+    "enabled": false,
+    "speed": 1.0,
+    "fadeIn": 0.15,
+    "fadeOut": 0.2,
+    "hitDuration": 0.15,
+    "fullDuration": 0.2,
+    "easing": "outCubic",
+    "hitEasing": "outCubic",
+    "fullEasing": "outCubic"
+  },
+
+  "limits": {
+    "maxCandidates": 32,
+    "maxParticles": 24,
+    "maxUpdatesPerSecond": 20
+  },
+
+  "minAlpha": 0.0,
+  "distanceFade": { "start": 0.0, "end": 0.0 },
+
+  "trajectory": {
+    "style": "line",
+    "width": 2.0,
+    "beadSize": 5.0,
+    "spacing": 0.6,
+    "taper": 0.0,
+    "dashLength": 0.5,
+    "handOffsetSide": 0.4,
+    "handOffsetDown": 0.25,
+    "handFadeTicks": 12,
+    "color": "#FFFFFF",
+    "colorFull": "#55FFFF"
+  },
+
+  "impact": {
+    "style": "box",
+    "size": 0.15,
+    "width": 3.0,
+    "pixelSize": 6.0,
+    "color": "#FF5555",
+    "edgeWidth": 0.0,
+    "edgeColor": "#FF5555"
+  },
+
+  "candidate": {
+    "frame": "box",
+    "color": "#FFFF00",
+    "width": 2.0,
+    "inflate": 0.08,
+    "arm": 0.3,
+    "pixel": 0.09,
+    "pixelSize": 5.0,
+    "roundCorners": false
+  },
+
+  "hit": {
+    "frame": "box",
+    "color": "#00FF00",
+    "width": 2.0,
+    "inflate": 0.08,
+    "arm": 0.3,
+    "pixel": 0.09,
+    "pixelSize": 5.0,
+    "roundCorners": false
+  },
+
+  "label": {
+    "text": "TARGET",
+    "color": "#00FF00",
+    "heightAbove": 0.35,
+    "scale": 1.0
+  },
+
+  "fullCharge": {
+    "text": "FULL",
+    "color": "#55FFFF",
+    "scale": 1.0,
+    "pulse": 0.0
+  },
+
+  "crosshairLabels": {
+    "distance": 2.5,
+    "drop": 0.5,
+    "rowGap": 0.2
+  },
+
+  "sounds": {
+    "fullCharge": { "enabled": false, "id": "minecraft:block.note_block.chime", "volume": 0.4, "pitch": 1.0 },
+    "locked":     { "enabled": false, "id": "minecraft:block.note_block.bell",  "volume": 0.4, "pitch": 1.0 },
+    "unlocked":   { "enabled": false, "id": "minecraft:block.note_block.hat",   "volume": 0.4, "pitch": 1.0 }
+  },
+
+  "particles": {
+    "fullCharge": { "enabled": false, "id": "minecraft:end_rod", "count": 6, "spread": 0.35 },
+    "hit":        { "enabled": false, "id": "minecraft:end_rod", "count": 4, "spread": 0.3 }
+  }
+}

@@ -24,6 +24,7 @@ loom {
 
 sourceSets {
 	main.java.srcDir '../shared/main/java'
+	main.resources.srcDir '../shared/main/resources'
 	client.java.srcDir '../shared/client/java'
 }
 
