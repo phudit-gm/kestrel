@@ -28,6 +28,12 @@ public final class KestrelSettings {
 	public static final double CONSTANT_MAX_VARIATION = 0.35D;
 	/** Longest arrow flight (ticks) the intercept solver looks at. */
 	public static final int INTERCEPT_MAX_FLIGHT_TICKS = 200;
+	/**
+	 * Ticks between the position the client sees and the moment the arrow actually meets the target: the client
+	 * draws entities a few ticks behind the server, and the shot leaves one to two ticks after the last frame.
+	 * Measured with the [kestrel-shot] log: the target ended up about this far ahead of the aim point.
+	 */
+	public static final double SHOT_DELAY_TICKS = 3.0D;
 	/** Milliseconds per tick, used to turn ping into ticks. */
 	public static final double MILLIS_PER_TICK = 50.0D;
 

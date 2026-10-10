@@ -26,7 +26,7 @@ public final class Predictor {
 				double speed = power * ArrowPhysics.SPEED_PER_POWER;
 				Vec3 body = new Vec3(0.0D, bodyHeight, 0.0D);
 				Intercept hit = InterceptSolver.solve(start, speed, now.add(body), motion.meanVelocity(),
-						pingMillis / KestrelSettings.MILLIS_PER_TICK);
+						pingMillis / KestrelSettings.MILLIS_PER_TICK + KestrelSettings.SHOT_DELAY_TICKS);
 				yield hit == null ? new Prediction(now, Prediction.Kind.UNREACHABLE, motionClass)
 						: new Prediction(hit.point().subtract(body), Prediction.Kind.CLEAR, motionClass);
 			}

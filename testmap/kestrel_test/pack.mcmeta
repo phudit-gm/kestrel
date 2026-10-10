@@ -1,0 +1,7 @@
+{
+	"pack": {
+		"description": "Kestrel test range: husks that walk back and forth at set speeds",
+		"min_format": 94,
+		"max_format": 121
+	}
+}

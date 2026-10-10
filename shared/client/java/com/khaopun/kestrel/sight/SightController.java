@@ -147,6 +147,7 @@ public final class SightController {
 		// The box is where the target is now, moved by the difference to the predicted position.
 		Vec3 shift = prediction.aim().subtract(target.position());
 		AABB ghost = box.move(shift);
+		DebugShots.recordPrediction(player, target, prediction);
 
 		boolean turning = prediction.kind() != Prediction.Kind.UNREACHABLE
 				&& ModeB.drive(mc, player, start, power, ghost.getCenter());

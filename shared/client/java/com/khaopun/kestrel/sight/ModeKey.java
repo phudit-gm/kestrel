@@ -25,6 +25,7 @@ public final class ModeKey {
 			}
 			LockController.onTick(client);
 			ModeB.onTick(client);
+			DebugShots.onTick(client);
 		});
 	}
 }
