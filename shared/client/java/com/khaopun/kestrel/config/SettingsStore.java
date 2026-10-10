@@ -47,6 +47,7 @@ public final class SettingsStore {
 			KestrelSettings.LOCK_NO_LINE_OF_SIGHT_TICKS = (int) Math.round(
 					num(lock, "noLineOfSightSeconds", KestrelSettings.LOCK_NO_LINE_OF_SIGHT_TICKS / 20.0D) * 20.0D);
 			KestrelSettings.PREDICT_MAX_OTHERS = (int) num(lock, "predictedCandidates", KestrelSettings.PREDICT_MAX_OTHERS);
+			KestrelSettings.DEBUG_SHOT_LOG = bool(obj(root, "debug"), "shotLog", KestrelSettings.DEBUG_SHOT_LOG);
 			JsonObject modeB = obj(root, "modeB");
 			KestrelSettings.MODE_B_TURN_DEG_PER_SEC = num(modeB, "turnSpeedDegreesPerSecond", KestrelSettings.MODE_B_TURN_DEG_PER_SEC);
 			KestrelSettings.MODE_B_SWITCH_THRESHOLD_DEGREES = num(modeB, "switchThresholdDegrees", KestrelSettings.MODE_B_SWITCH_THRESHOLD_DEGREES);
@@ -73,6 +74,9 @@ public final class SettingsStore {
 		modeB.addProperty("switchThresholdDegrees", KestrelSettings.MODE_B_SWITCH_THRESHOLD_DEGREES);
 		modeB.addProperty("switchCooldownTicks", KestrelSettings.MODE_B_SWITCH_COOLDOWN_TICKS);
 		root.add("modeB", modeB);
+		JsonObject debug = new JsonObject();
+		debug.addProperty("shotLog", KestrelSettings.DEBUG_SHOT_LOG);
+		root.add("debug", debug);
 		try {
 			Path file = file();
 			Files.createDirectories(file.getParent());

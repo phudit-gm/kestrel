@@ -54,6 +54,9 @@ public final class KestrelSettings {
 	/** Passes of the aim solver. */
 	public static final int AIM_SOLVER_ITERATIONS = 6;
 
+	/** Logs where each shot at a predicted target really landed ([kestrel-shot] in latest.log). Off by default. */
+	public static volatile boolean DEBUG_SHOT_LOG = false;
+
 	// --- Lock filter ---
 	public static volatile boolean LOCK_HOSTILE_MOBS = true;
 	public static volatile boolean LOCK_PLAYERS = true;

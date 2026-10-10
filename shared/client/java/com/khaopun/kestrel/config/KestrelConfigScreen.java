@@ -145,6 +145,9 @@ public final class KestrelConfigScreen {
 		modeB.addEntry(eb.startIntSlider(Component.literal("Pause after a switch (ticks)"), KestrelSettings.MODE_B_SWITCH_COOLDOWN_TICKS, 0, 40)
 				.setDefaultValue(KestrelSettings.MODE_B_SWITCH_COOLDOWN_TICKS).setSaveConsumer(v -> KestrelSettings.MODE_B_SWITCH_COOLDOWN_TICKS = v).build());
 
+		limits.addEntry(eb.startBooleanToggle(Component.literal("Log every shot's accuracy ([kestrel-shot] in latest.log)"), KestrelSettings.DEBUG_SHOT_LOG)
+				.setDefaultValue(false).setSaveConsumer(v -> KestrelSettings.DEBUG_SHOT_LOG = v).build());
+
 		// ---- Sounds
 		ConfigCategory sounds = builder.getOrCreateCategory(Component.literal("Sounds"));
 		for (int i = 0; i < SOUND_KEYS.length; i++) {

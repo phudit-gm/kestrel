@@ -51,6 +51,9 @@ public final class DebugShots {
 
 	/** Called every frame a prediction exists for the main target. */
 	public static void recordPrediction(LocalPlayer player, Entity target, Prediction prediction) {
+		if (!com.khaopun.kestrel.KestrelSettings.DEBUG_SHOT_LOG) {
+			return;
+		}
 		TargetMotion motion = LockController.motion();
 		Vec3 velocity = motion.isEmpty() ? Vec3.ZERO : motion.meanVelocity();
 		latest = new Snapshot(target.getId(), prediction.aim(), target.position(), velocity, prediction.kind(),
@@ -59,6 +62,10 @@ public final class DebugShots {
 	}
 
 	public static void onTick(Minecraft mc) {
+		if (!com.khaopun.kestrel.KestrelSettings.DEBUG_SHOT_LOG) {
+			FLIGHTS.clear();
+			return;
+		}
 		tick++;
 		if (mc.level == null || mc.player == null) {
 			FLIGHTS.clear();
