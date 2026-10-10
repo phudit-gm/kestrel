@@ -1,9 +1,10 @@
-# Kestrel hand-off (2026-10-09)
+# Kestrel hand-off (updated 2026-10-11)
 
 ## State
-Step 1 and Step 1.5 are DONE and tested in game by the user (themes, `/kestrel reload`, shader pack, other hitbox mods: all fine).
-Step 2 (lock, prediction, ghost, Mode A) is IN PROGRESS: see `brief/brief-kestrel-step2-lock-prediction-modeA.md` and the "Step 2 progress" section below.
-Repo: https://github.com/phudit-gm/kestrel (branch `main`). Commits are local until the user asks to push.
+Steps 1 to 3 and 5 are done and tested in game. Step 4 (server handshake / homing) was skipped on purpose.
+Step 6 (release preparation, 2026-10-11) is **built and pushed but only partly tested in game**: see "Step 6" at the end.
+The next job is: test the items in `release/CHECKLIST.md`, then publish (nothing has been published anywhere).
+Repo: https://github.com/phudit-gm/kestrel (branch `main`).
 
 ## Layout
 - `mc-1.21.11/`, `mc-26.2/`, `mc-26.3/`: separate Fabric Gradle projects (1.21.11 / Java 21; 26.2 and 26.3 / Java 25). Each adds `shared/main/java`, `shared/main/resources` and `shared/client/java` as source dirs in `build.gradle`.
@@ -11,7 +12,7 @@ Repo: https://github.com/phudit-gm/kestrel (branch `main`). Commits are local un
   - `core`: ArrowPhysics, ProjectileSimulator, LockRange, TrajectoryResult (Step 1 physics, unchanged).
   - `feedback`: `FeedbackEvent` (all events incl. later ones), `FeedbackBus` (level-triggered: emit every active event each frame, then `frameEnd()`), payload records, `theme/` (`Theme`, `ThemeLoader`, `ColorSpec`, `Easing`).
   - `KestrelSettings`: only behaviour constants (lock filter, simulation cap). Visual/audio values live in themes.
-- `shared/main/resources/assets/kestrel/themes/`: `classic.json` (Step 1 look; lists every key; also the fallback for missing keys) and `khaopun.json` (default).
+- `shared/main/resources/assets/kestrel/themes/`: `classic.json` (Step 1 look; lists every key; also the fallback for missing keys) and `pixel_gradient.json` (default, formerly `khaopun`; the old name is still accepted in theme.json).
 - `shared/client/java`: `sight/SightController` (logic only, emits events), `sight/LockFilter`, `feedback/FeedbackLayer` (draws/plays from the theme, per-element animated tracks), `ThemeStore` (`config/kestrel/theme.json`), `ReloadCommand`, `IrisCompat`.
 - Per version only: `KestrelClient.java` (render event + command registration; 1.21.11 uses `ClientCommandManager`/`WorldRenderEvents`, 26.x uses `ClientCommands`/`LevelRenderEvents`), `fabric.mod.json`.
 
@@ -19,13 +20,13 @@ Repo: https://github.com/phudit-gm/kestrel (branch `main`). Commits are local un
 - Arrow physics read from game bytecode; identical in 1.21.11 and 26.x (gravity 0.05, air drag 0.99, water drag 0.6, speed = power*3.0, spawn at eye-0.1).
 - Lock range = max flight distance at full charge (~143 blocks).
 - Drawing uses vanilla Gizmos only. Boxes are depth-tested on purpose (no wallhack on PvP servers).
-- Two themes only: `khaopun` (default: pixel corner brackets, purple-pink-cyan gradients, smooth easing, rainbow only at full charge) and `classic`. Owner likes gradients, cuteness, smoothness.
+- Two themes only: `pixel_gradient` (default, formerly `khaopun`: pixel corner brackets, purple-pink-cyan gradients, smooth easing, rainbow only at full charge) and `classic`. Owner likes gradients, cuteness, smoothness.
 - Iris does not map the Gizmo point/quad/fan pipelines (`DEBUG_POINTS` etc.), so under a shader pack dots are drawn as small 3-axis line crosses (`compat.points`: auto/lines/points). Lines and text are fine. User confirmed this works with Complementary Unbound.
 - Test shader: Complementary Unbound. Owner's own mods for reference: `C:\dev\minecraft\minecraft-mods\hitboxstyle`.
 
 ## Build / deploy
 `$env:JAVA_HOME='C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot'; cd mc-<ver>; .\gradlew.bat build` (JDK 25 needed to run Gradle even for 1.21.11).
-Copy `mc-<ver>/build/libs/kestrel-1.0.0.jar` to the Prism instance mods folder as `kestrel-1.0.0.jar`: `PvP 1.21.11` (1.21.11), `Survival 26.3` (26.3), `Survival 26.2` (26.2). Close the game first (jar is locked while running). Old Step 1 jars: `C:\dev\minecraft\disabled-mods\kestrel-step1\`.
+Copy `mc-<ver>/build/libs/kestrel-<version>.jar` (version is in `gradle.properties`, now `1.0.0-beta.1`) to the Prism instance mods folder (`%APPDATA%\PrismLauncher\instances\<name>\minecraft\mods`) and delete any older kestrel jar there, or the game refuses to start with a duplicate mod: `PvP 1.21.11` (1.21.11), `Survival 26.3` (26.3), `Survival 26.2` (26.2). Close the game first (jar is locked while running). Old Step 1 jars: `C:\dev\minecraft\disabled-mods\kestrel-step1\`.
 Instance notes: ptp removed from the two original instances (jars in `C:\dev\minecraft\disabled-mods\`); `particlerain ...+26.2` disabled on Survival 26.3 (crashes there, unrelated).
 
 ## Step 2 progress
@@ -56,3 +57,20 @@ Known gaps / decisions to confirm with the user:
 - 5c config screen: `config/KestrelConfigScreen` (Cloth Config, opened from Mod Menu; both optional). Visual and sound values are written to the `overrides` of `config/kestrel/theme.json`, behaviour values to `config/kestrel/settings.json` (`SettingsStore`, live values in `KestrelSettings`). `/kestrel reload` re-reads both.
 - Skipped on purpose: Step 4 (server handshake and homing): servers' anti-cheat blocks it. So there is no homing switch in the config screen.
 - Known gaps: the ghost is an outline, not a translucent copy of the target's model (see Step 2 gaps); the config screen's reset button restores the value from when the screen opened, not the theme default; `SHOT_DELAY_TICKS` (3) was measured in singleplayer with ping 0; the `[kestrel-shot]` log (`debug.shotLog` in settings.json, or the Limits tab) is off by default.
+
+## Step 6 (2026-10-11): release preparation
+Done and pushed (commit "Prepare 1.0.0-beta.1"), builds on all 3 versions:
+- **Target filter** (`sight/LockFilter`, settings in `KestrelSettings`, file `config/kestrel/settings.json` keys `filter` and `modeBFilter`): categories players / hostile / animals / villagers / other, separate sets for Mode A and Mode B, plus `alwaysIds` / `neverIds` (`minecraft:creeper`, `modid:*`). Category comes from `Enemy`, `AbstractVillager`, `Player`, else `MobCategory`. Defaults: A = players + hostile, B = hostile only.
+- **Mode B on servers**: the singleplayer-only restriction is gone. `AimMode.modeBPermitted` = own switch (`modeB.enabled`) AND server policy. One-time chat reminder per session on multiplayer (`AimMode.warnOnce`, off with `modeB.serverWarning`). Chat is written through `AimMode.setChatMessenger`, set per version in `KestrelClient` (1.21.11 `displayClientMessage`, 26.x `sendSystemMessage`).
+- **Server rules** (`sight/ServerPolicy`): the client looks for scoreboard teams `ks_off_all`, `ks_off_path`, `ks_off_lock`, `ks_off_predict`, `ks_off_modeb`, `ks_off_players` (every team is synced to clients; no server mod). Hierarchy: all > lock > predict > modeb; `path` and `players` are separate. Gates are in `SightController`, `LockController.onTick`, `LockFilter`, `AimMode`. Datapack `datapacks/kestrel_rules` creates/removes the teams (`/function kestrel_rules:<rule>/off|on`, `preset/*`, `status`). Honour system, not anti-cheat.
+- **Head aim** (`ModeB.aimPoint`): head (eye height of the predicted position) if the target is on the ground, not in water, and a block raycast start->head is clear; else hitbox centre; held 0.25 s to avoid flicker. Setting `modeB.aimHead`. The ghost box itself is unchanged (still the whole hitbox).
+- Docs and metadata: MIT licence in the root and each `mc-*` folder (they were CC0 before), `README.md`, `README.th.md`, `CHANGELOG.md`, `fabric.mod.json` homepage / sources / issues / description, version `1.0.0-beta.1`.
+- `release/`: `build-release.ps1` (builds all versions into `release/dist`, git-ignored), `MODRINTH.md` (page text), `CHECKLIST.md`.
+
+Tested in game (owner, test server `C:\MinecraftServer\KestrelTest262`, Fabric 26.2, superflat, datapack `kestrel_test` + `kestrel_rules`): server rules `modeb`, `predict`, `lock`, `path`, `all` each turn the right feature off and `on` restores it.
+**Not tested in game yet:** head aim (esp. a hopping target), the new settings tabs, rule `players/off` (needs a second player), the 26.3 and 1.21.11 jars (they compile only).
+
+Known gaps: prediction ignores vertical target movement; ghost is an outline; `SHOT_DELAY_TICKS` measured at ping 0; the config reset button restores the value from when the screen opened.
+
+### Test server
+`C:\MinecraftServer\KestrelTest262` (copy of the Survival262 launcher, only Fabric API in mods, Kestrel is client-only so it is not installed there). Start with `start-server.bat`; console commands from outside via `send-console.ps1 -TargetPid <java pid> -Text "<command>"`. Port 25565 (same as the other servers, only one at a time), public address through the playit tunnel. Offline mode, no whitelist; ops: the owner and the friends who joined. Spawn monsters off, slimes were killed.
