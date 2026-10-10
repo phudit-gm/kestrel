@@ -22,6 +22,12 @@ public enum FeedbackEvent {
 	GHOST_PREDICTED,
 	/** Every frame, once per unlocked candidate that is predicted. Payload {@link GhostInfo}. */
 	GHOST_OTHER,
+	/** Once, when the player selects Mode A. No payload. */
+	MODE_A_SELECTED,
+	/** Once, when the player selects Mode B. No payload. */
+	MODE_B_SELECTED,
+	/** Once, when a mouse flick in Mode B moves the target to another candidate. No payload. */
+	TARGET_SWITCHED,
 	/** Every frame the camera is still turning toward the aim point (Mode B). Payload {@link GhostInfo}. */
 	AIM_TURNING,
 	/** Every frame the impact point touches the ghost. Payload {@link GhostInfo}. */

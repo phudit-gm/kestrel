@@ -1,5 +1,6 @@
 package com.khaopun.kestrel;
 
+import com.khaopun.kestrel.config.SettingsStore;
 import com.khaopun.kestrel.feedback.FeedbackLayer;
 import com.khaopun.kestrel.feedback.ReloadCommand;
 import com.khaopun.kestrel.sight.AimMode;
@@ -17,6 +18,7 @@ import net.minecraft.client.Minecraft;
 public class KestrelClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
+		SettingsStore.load();
 		FeedbackLayer.init();
 		HeldWeapon.setProjectileReader(charged -> charged.itemCopies().toList());
 		AimMode.setMessenger((player, text) -> player.sendOverlayMessage(text));

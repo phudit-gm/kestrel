@@ -66,6 +66,11 @@ public final class LockController {
 		return out;
 	}
 
+	/** Queues a one-off event to be announced with the next frame. */
+	public static void announce(FeedbackEvent event) {
+		PENDING.add(new Object[] {event, null});
+	}
+
 	/** Used by Mode B when the mouse flicks toward another candidate. */
 	public static void switchTo(Entity entity) {
 		lock(entity);

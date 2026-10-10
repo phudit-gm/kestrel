@@ -92,6 +92,7 @@ public final class FeedbackLayer implements FeedbackListener {
 	private boolean turningIn;
 	private final List<GhostInfo> othersIn = new ArrayList<>();
 	private final List<UnlockInfo> unlocksIn = new ArrayList<>();
+	private final List<String> soundsIn = new ArrayList<>();
 
 	// --- persistent state ---
 	private final Track trajectory = new Track();
@@ -135,6 +136,9 @@ public final class FeedbackLayer implements FeedbackListener {
 			case TARGET_UNLOCKED, TARGET_LOST -> unlocksIn.add((UnlockInfo) payload);
 			case GHOST_PREDICTED -> ghostIn = (GhostInfo) payload;
 			case AIM_TURNING -> turningIn = true;
+			case MODE_A_SELECTED -> soundsIn.add("modeA");
+			case MODE_B_SELECTED -> soundsIn.add("modeB");
+			case TARGET_SWITCHED -> soundsIn.add("switched");
 			case GHOST_OTHER -> othersIn.add((GhostInfo) payload);
 			default -> {
 				// AIM_ALIGNED, AIM_MOVING and TARGET_UNREACHABLE carry the same GhostInfo as GHOST_PREDICTED, whose
@@ -205,6 +209,7 @@ public final class FeedbackLayer implements FeedbackListener {
 		turningIn = false;
 		othersIn.clear();
 		unlocksIn.clear();
+		soundsIn.clear();
 	}
 
 	// ---------------------------------------------------------------- state updates
@@ -489,6 +494,12 @@ public final class FeedbackLayer implements FeedbackListener {
 		}
 		ghost.update(ghostIn != null && th.enabled("ghost"), dt, fadeIn, fadeOut, animate);
 		aligned.update(ghostIn != null && ghostIn.aligned(), dt, hitDuration, hitDuration, animate);
+		if (aligned.entered) {
+			playSound(th, "aligned");
+		}
+		for (String key : soundsIn) {
+			playSound(th, key);
+		}
 		if (lockOn) {
 			for (UnlockInfo info : unlocksIn) {
 				unlockFx.add(new Object[] {info.box(), seconds});

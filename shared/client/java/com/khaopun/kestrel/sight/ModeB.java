@@ -6,6 +6,7 @@ import com.khaopun.kestrel.KestrelSettings;
 import com.khaopun.kestrel.core.AimSolver;
 import com.khaopun.kestrel.core.LockRange;
 import com.khaopun.kestrel.core.ShotProfile;
+import com.khaopun.kestrel.feedback.FeedbackEvent;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -71,6 +72,7 @@ public final class ModeB {
 		accumPitch = 0.0D;
 		if (next != null) {
 			LockController.switchTo(next);
+			LockController.announce(FeedbackEvent.TARGET_SWITCHED);
 			cooldown = KestrelSettings.MODE_B_SWITCH_COOLDOWN_TICKS;
 		}
 	}

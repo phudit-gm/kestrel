@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.util.Properties;
 import java.util.function.BiConsumer;
 
+import com.khaopun.kestrel.feedback.FeedbackEvent;
+
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -76,6 +78,7 @@ public final class AimMode {
 		modeB = !modeB;
 		save();
 		message(mc, modeB ? "Kestrel: Mode B (auto aim)" : "Kestrel: Mode A (preview)");
+		LockController.announce(modeB ? FeedbackEvent.MODE_B_SELECTED : FeedbackEvent.MODE_A_SELECTED);
 	}
 
 	private static void message(Minecraft mc, String text) {

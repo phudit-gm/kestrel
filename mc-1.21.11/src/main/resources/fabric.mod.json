@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"com.khaopun.kestrel.KestrelClient"
+		],
+		"modmenu": [
+			"com.khaopun.kestrel.ModMenuIntegration"
 		]
 	},
 	"mixins": [
@@ -28,6 +31,10 @@
 			"environment": "client"
 		}
 	],
+	"suggests": {
+		"cloth-config": "*",
+		"modmenu": "*"
+	},
 	"depends": {
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~1.21.11",

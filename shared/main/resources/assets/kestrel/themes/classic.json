@@ -180,7 +180,11 @@
   "sounds": {
     "fullCharge": { "enabled": false, "id": "minecraft:block.note_block.chime", "volume": 0.4, "pitch": 1.0 },
     "locked":     { "enabled": false, "id": "minecraft:block.note_block.bell",  "volume": 0.4, "pitch": 1.0 },
-    "unlocked":   { "enabled": false, "id": "minecraft:block.note_block.hat",   "volume": 0.4, "pitch": 1.0 }
+    "unlocked":   { "enabled": false, "id": "minecraft:block.note_block.hat",   "volume": 0.4, "pitch": 1.0 },
+    "aligned":    { "enabled": false, "id": "minecraft:block.amethyst_block.chime", "volume": 0.4, "pitch": 1.0 },
+    "switched":   { "enabled": false, "id": "minecraft:ui.button.click",            "volume": 0.4, "pitch": 1.0 },
+    "modeA":      { "enabled": false, "id": "minecraft:block.note_block.chime",     "volume": 0.4, "pitch": 0.8 },
+    "modeB":      { "enabled": false, "id": "minecraft:block.note_block.chime",     "volume": 0.4, "pitch": 1.3 }
   },
 
   "particles": {

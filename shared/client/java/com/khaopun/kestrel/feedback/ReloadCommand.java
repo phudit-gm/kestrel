@@ -11,6 +11,7 @@ public final class ReloadCommand {
 	}
 
 	public static int run(Consumer<Component> reply) {
+		com.khaopun.kestrel.config.SettingsStore.load();
 		List<String> problems = ThemeStore.reload();
 		reply.accept(Component.translatable("kestrel.command.reload.done", ThemeStore.theme().name()));
 		for (String problem : problems) {

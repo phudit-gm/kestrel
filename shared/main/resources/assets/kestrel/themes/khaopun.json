@@ -121,7 +121,11 @@
   "sounds": {
     "fullCharge": { "enabled": true, "volume": 0.35, "pitch": 1.5 },
     "locked":     { "enabled": true, "volume": 0.3,  "pitch": 1.7 },
-    "unlocked":   { "enabled": true, "volume": 0.3,  "pitch": 0.8 }
+    "unlocked":   { "enabled": true, "volume": 0.3,  "pitch": 0.8 },
+    "aligned":    { "enabled": true, "volume": 0.2,  "pitch": 1.9 },
+    "switched":   { "enabled": true, "volume": 0.3,  "pitch": 1.7 },
+    "modeA":      { "enabled": true, "volume": 0.3,  "pitch": 1.0 },
+    "modeB":      { "enabled": true, "volume": 0.3,  "pitch": 1.6 }
   },
 
   "particles": {
