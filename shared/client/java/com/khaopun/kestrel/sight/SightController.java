@@ -50,7 +50,7 @@ public final class SightController {
 	private static void emitEvents(Minecraft mc) {
 		LocalPlayer player = mc.player;
 		Level level = mc.level;
-		if (player == null || level == null) {
+		if (player == null || level == null || !ServerPolicy.allowSight(mc)) {
 			return;
 		}
 
@@ -81,10 +81,13 @@ public final class SightController {
 		Vec3 side = new Vec3(-Math.cos(yaw), 0.0D, -Math.sin(yaw)).scale(rightHanded ? 1.0D : -1.0D);
 
 		SightFrame frame = new SightFrame(eye, look, side, result.points(), result.impact(), fullyCharged);
-		FeedbackBus.emit(FeedbackEvent.TRAJECTORY_VISIBLE, frame);
-		FeedbackBus.emit(FeedbackEvent.IMPACT_POINT, frame);
+		boolean showPath = ServerPolicy.allowPath(mc);
+		if (showPath) {
+			FeedbackBus.emit(FeedbackEvent.TRAJECTORY_VISIBLE, frame);
+			FeedbackBus.emit(FeedbackEvent.IMPACT_POINT, frame);
+		}
 		// Multishot: the side projectiles get their own lines. Lock, ghost and Mode B use the centre one only.
-		for (double angle : shot.extraAngles()) {
+		for (double angle : showPath ? shot.extraAngles() : List.<Double>of()) {
 			Vec3 sideLook = rotateAroundUp(player, look, angle);
 			TrajectoryResult sideResult = ProjectileSimulator.simulate(level, player, start,
 					launchVelocity(player, shot, sideLook), nearby, shot.maxTicks(), shot.model());
@@ -95,7 +98,7 @@ public final class SightController {
 			FeedbackBus.emit(FeedbackEvent.FULL_CHARGE, frame);
 		}
 
-		List<Entity> lockable = LockController.lockable(player, level, eye, nearby);
+		List<Entity> lockable = ServerPolicy.allowLock(mc) ? LockController.lockable(player, level, eye, nearby) : List.of();
 
 		int count = Math.min(lockable.size(), ThemeStore.theme().integer("limits.maxCandidates"));
 		for (int i = 0; i < count; i++) {
@@ -109,8 +112,10 @@ public final class SightController {
 			}
 		}
 
-		emitPrediction(mc, player, start, shot, result);
-		emitOthers(mc, player, start, shot, lockable, partial);
+		if (ServerPolicy.allowPredict(mc)) {
+			emitPrediction(mc, player, start, shot, result);
+			emitOthers(mc, player, start, shot, lockable, partial);
+		}
 	}
 
 	/** Launch velocity of one projectile: aim direction times speed, plus the shooter's motion where the game adds it. */
@@ -177,7 +182,7 @@ public final class SightController {
 		DebugShots.recordPrediction(player, target, prediction);
 
 		boolean turning = prediction.kind() != Prediction.Kind.UNREACHABLE
-				&& ModeB.drive(mc, player, start, shot, ghost.getCenter());
+				&& ModeB.drive(mc, player, start, shot, ModeB.aimPoint(mc, player, target, ghost, start));
 
 		boolean aligned = prediction.kind() != Prediction.Kind.UNREACHABLE && pathTouches(result.points(), ghost);
 		GhostInfo info = new GhostInfo(target.getId(), ghost, prediction.kind(), aligned);

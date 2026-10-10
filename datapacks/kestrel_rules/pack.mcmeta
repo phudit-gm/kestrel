@@ -1,0 +1,7 @@
+{
+	"pack": {
+		"description": "Kestrel server rules: switch Kestrel features off for players who use the mod",
+		"min_format": 94,
+		"max_format": 121
+	}
+}

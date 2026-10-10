@@ -1,5 +1,5 @@
 {
-  "_comment": "khaopun: cute pixel brackets, soft purple-pink-cyan gradients, smooth motion, rainbow only at full charge. Anything not listed here falls back to classic.",
+  "_comment": "pixel_gradient (default): cute pixel brackets, soft purple-pink-cyan gradients, smooth motion, rainbow only at full charge. Anything not listed here falls back to classic.",
 
   "animation": {
     "enabled": true,

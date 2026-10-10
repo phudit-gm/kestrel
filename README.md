@@ -1,25 +1,90 @@
 # Kestrel
 
-Client-side Fabric mod for Minecraft Java. While you draw a bow it shows the predicted arrow trajectory, an impact marker, boxes around lockable entities in range (turning green with `TARGET` when the arrow's path hits them) and a full-charge indicator. No server install needed.
+A client-side Fabric mod that helps you shoot. Hold a bow, crossbow or trident and Kestrel shows where the
+projectile will fly, which targets are in range, and where a moving target will be when the projectile arrives.
+An optional second mode (Mode B) turns the camera to that point for you.
 
-| Minecraft | Java | Directory |
-|-----------|------|-----------|
-| 1.21.11   | 21   | `mc-1.21.11` |
-| 26.2      | 25   | `mc-26.2` |
-| 26.3      | 25   | `mc-26.3` |
+No server install is needed. Servers can switch any feature off (see [For server owners](#for-server-owners)).
 
-`shared/` holds the source used by all versions: physics in `core`, bow-sight logic in `sight`, and `feedback` (events, theme, drawing, sound, particles).
+| Minecraft | Java | Notes |
+|-----------|------|-------|
+| 1.21.11   | 21   | |
+| 26.2      | 25   | |
+| 26.3      | 25   | |
 
-## Look and feel (themes)
-Logic only announces events; `feedback` decides how they look and sound from a theme. Two themes ship: `khaopun` (default) and `classic` (the Step 1 look). Edit `config/kestrel/theme.json` (created on first launch) and run `/kestrel reload` in game.
+Needs [Fabric API](https://modrinth.com/mod/fabric-api). [Cloth Config](https://modrinth.com/mod/cloth-config) and
+[Mod Menu](https://modrinth.com/mod/modmenu) are optional and add the in-game settings screen.
 
-- `theme`: `khaopun` or `classic`
-- `enabled`: switches for `trajectory`, `impact`, `candidates`, `hit`, `fullCharge`, `particles`, `sounds`
-- `animation` (e.g. `{"enabled": false}` for instant changes, `{"speed": 0.5}`), `limits`
-- `overrides`: dotted paths over the theme, e.g. `"candidate.color": "#FFD60080"`, `"trajectory.style": "line"`
+## What it does
 
-Every available key is listed in `shared/main/resources/assets/kestrel/themes/classic.json`; design notes in `brief/draft-kestrel-step1.5-theme-design.md`.
+- **Trajectory and impact point** for bow, crossbow (including Multishot and firework rockets) and trident.
+- **Target boxes** around what you can hit. The box turns green when the projectile's path touches the target.
+- **Lead prediction (the "ghost")** shows where a moving target will be when the arrow arrives, including your ping.
+- **Mode A (preview)**: you aim, Kestrel shows. **Mode B (auto aim)**: the camera turns to the aim point by itself
+  and the mouse switches target instead. Press **R** to switch between A and B.
+- Sounds, colours, shapes and themes you can change in the settings screen or in `config/kestrel/theme.json`
+  (`/kestrel reload`). Themes: `pixel_gradient` (default) and `classic`.
 
-Build (needs JDK 25 to run Gradle): `.\gradlew.bat build` inside a version directory. Jar: `build/libs/kestrel-1.0.0.jar`.
+## Mode B and fair play
 
-Status: Step 1 done; Step 1.5 (feedback layer) implemented, builds on all versions, in-game testing pending.
+Mode B is aim assistance. Many servers, especially PvP and competitive ones, do not allow it. Kestrel shows a
+reminder in chat the first time you use it on a server. **You are responsible for following the rules of the server
+you play on.** You can turn Mode B off completely in Settings > Mode B, and servers can switch it off for you.
+
+Mode B aims for the head while the target stands on the ground and the head is not behind a block, and for the middle
+of the hitbox when the target is jumping, falling, swimming or covered. This can be turned off.
+
+## Who it targets
+
+By default: hostile mobs and players in Mode A, hostile mobs only in Mode B. Animals, villagers and other creatures
+are off. In Settings > Targeting and Mode B you can choose the categories separately for each mode, and add
+entity ids that are always or never targeted (`minecraft:creeper`, or `somemod:*` for every creature of a mod).
+Tamed animals are never targeted unless you change it.
+
+## For server owners
+
+Kestrel reads scoreboard teams with reserved names. Create one and the matching feature turns off for every
+player who uses Kestrel. This works on vanilla, Paper, Fabric and any server that runs datapacks; you do not
+install anything on the server.
+
+The easiest way is the datapack in [`datapacks/kestrel_rules`](datapacks/kestrel_rules). Copy it to
+`<world>/datapacks`, run `/reload`, then for example:
+
+```
+/function kestrel_rules:modeb/off            no Mode B (auto aim)
+/function kestrel_rules:predict/off          no lead prediction / ghost (also no Mode B)
+/function kestrel_rules:lock/off             no target boxes or locking (also no prediction, no Mode B)
+/function kestrel_rules:path/off             no trajectory line or impact point
+/function kestrel_rules:players/off          players cannot be targeted
+/function kestrel_rules:all/off              Kestrel does nothing
+/function kestrel_rules:preset/pvp_safe      no ghost, no Mode B, no targeting players
+```
+
+Every rule also has `/on`. Without the datapack you can run the same thing by hand, for example
+`/team add ks_off_modeb`. Team names: `ks_off_all`, `ks_off_path`, `ks_off_lock`, `ks_off_predict`, `ks_off_modeb`,
+`ks_off_players`.
+
+**This is a request that the mod honours, not anti-cheat.** Someone who modifies the mod or uses another client is
+not affected. Keep your usual anti-cheat.
+
+## Installing
+
+1. Install Fabric Loader and Fabric API for your Minecraft version.
+2. Put `kestrel-<version>.jar` in the `mods` folder.
+3. Optional: Cloth Config and Mod Menu for the settings screen.
+4. In game, hold a bow and draw it. **R** switches Mode A / B (rebind in Controls > Kestrel).
+
+## Settings files
+
+- `config/kestrel/settings.json`: who can be targeted, Mode B tuning.
+- `config/kestrel/theme.json`: look and sound.
+- `config/kestrel.properties`: the last chosen mode.
+
+## Building
+
+Needs JDK 25 to run Gradle. Inside a version folder: `./gradlew build`. The jar is in `build/libs`.
+`shared/` holds the source used by all versions.
+
+## License
+
+MIT, see [LICENSE](LICENSE).

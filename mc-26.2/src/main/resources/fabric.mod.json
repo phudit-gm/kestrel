@@ -3,13 +3,14 @@
 	"id": "kestrel",
 	"version": "${version}",
 	"name": "Kestrel",
-	"description": "Bow sight: predicted arrow trajectory, impact marker, lockable-target boxes and a full-charge indicator. Client-side only.",
+	"description": "Bow, crossbow and trident sight: predicted flight path, target boxes, lead prediction and an optional automatic camera aim (Mode B). Client-side; servers can switch features off.",
 	"authors": [
 		"Khaopun"
 	],
 	"contact": {
-		"homepage": "",
-		"sources": ""
+		"homepage": "https://github.com/phudit-gm/kestrel",
+		"sources": "https://github.com/phudit-gm/kestrel",
+		"issues": "https://github.com/phudit-gm/kestrel/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/kestrel/icon.png",

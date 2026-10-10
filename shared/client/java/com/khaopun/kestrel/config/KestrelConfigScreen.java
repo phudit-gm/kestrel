@@ -28,7 +28,7 @@ public final class KestrelConfigScreen {
 	private static final String[] FRAMES = {"box", "corners", "pixelCorners"};
 	private static final String[] TRAJECTORY_STYLES = {"beads", "line", "dashed"};
 	private static final String[] IMPACT_STYLES = {"box", "cross", "pixelCross"};
-	private static final String[] THEMES = {"khaopun", "classic"};
+	private static final String[] THEMES = {"pixel_gradient", "classic"};
 	private static final String[] SOUND_KEYS = {"fullCharge", "locked", "unlocked", "aligned", "switched", "modeA", "modeB"};
 	private static final String[] SOUND_NAMES = {"Full charge", "Target locked", "Target lost", "Aim aligned",
 			"Target switched (Mode B)", "Mode A selected", "Mode B selected"};
@@ -118,14 +118,19 @@ public final class KestrelConfigScreen {
 
 		// ---- Targeting
 		ConfigCategory targeting = builder.getOrCreateCategory(Component.literal("Targeting"));
-		targeting.addEntry(eb.startBooleanToggle(Component.literal("Players"), KestrelSettings.LOCK_PLAYERS)
-				.setDefaultValue(KestrelSettings.LOCK_PLAYERS).setSaveConsumer(v -> KestrelSettings.LOCK_PLAYERS = v).build());
-		targeting.addEntry(eb.startBooleanToggle(Component.literal("Hostile mobs"), KestrelSettings.LOCK_HOSTILE_MOBS)
-				.setDefaultValue(KestrelSettings.LOCK_HOSTILE_MOBS).setSaveConsumer(v -> KestrelSettings.LOCK_HOSTILE_MOBS = v).build());
-		targeting.addEntry(eb.startBooleanToggle(Component.literal("Never target villagers"), KestrelSettings.LOCK_EXCLUDE_VILLAGERS)
-				.setDefaultValue(KestrelSettings.LOCK_EXCLUDE_VILLAGERS).setSaveConsumer(v -> KestrelSettings.LOCK_EXCLUDE_VILLAGERS = v).build());
-		targeting.addEntry(eb.startBooleanToggle(Component.literal("Never target tamed animals"), KestrelSettings.LOCK_EXCLUDE_TAMED)
-				.setDefaultValue(KestrelSettings.LOCK_EXCLUDE_TAMED).setSaveConsumer(v -> KestrelSettings.LOCK_EXCLUDE_TAMED = v).build());
+		targeting.addEntry(eb.startTextDescription(Component.literal("Who the sight may target in Mode A (preview).")).build());
+		targeting.addEntry(toggle(eb, "Players", KestrelSettings.LOCK_PLAYERS, v -> KestrelSettings.LOCK_PLAYERS = v));
+		targeting.addEntry(toggle(eb, "Hostile mobs", KestrelSettings.LOCK_HOSTILE_MOBS, v -> KestrelSettings.LOCK_HOSTILE_MOBS = v));
+		targeting.addEntry(toggle(eb, "Animals (farm animals, fish, bats)", KestrelSettings.LOCK_ANIMALS, v -> KestrelSettings.LOCK_ANIMALS = v));
+		targeting.addEntry(toggle(eb, "Villagers and traders", KestrelSettings.LOCK_VILLAGERS, v -> KestrelSettings.LOCK_VILLAGERS = v));
+		targeting.addEntry(toggle(eb, "Other creatures (golems, ...)", KestrelSettings.LOCK_OTHER, v -> KestrelSettings.LOCK_OTHER = v));
+		targeting.addEntry(toggle(eb, "Never target tamed animals", KestrelSettings.LOCK_EXCLUDE_TAMED, v -> KestrelSettings.LOCK_EXCLUDE_TAMED = v));
+		targeting.addEntry(eb.startStrList(Component.literal("Always target these (minecraft:creeper, or modid:* for a whole mod)"),
+				KestrelSettings.LOCK_ALWAYS_IDS).setDefaultValue(java.util.List.of())
+				.setSaveConsumer(v -> KestrelSettings.LOCK_ALWAYS_IDS = java.util.List.copyOf(v)).build());
+		targeting.addEntry(eb.startStrList(Component.literal("Never target these"), KestrelSettings.LOCK_NEVER_IDS)
+				.setDefaultValue(java.util.List.of())
+				.setSaveConsumer(v -> KestrelSettings.LOCK_NEVER_IDS = java.util.List.copyOf(v)).build());
 		targeting.addEntry(eb.startDoubleField(Component.literal("Release the target after this many seconds out of sight"),
 				KestrelSettings.LOCK_NO_LINE_OF_SIGHT_TICKS / 20.0D).setMin(0.0D).setMax(30.0D)
 				.setDefaultValue(KestrelSettings.LOCK_NO_LINE_OF_SIGHT_TICKS / 20.0D)
@@ -136,6 +141,19 @@ public final class KestrelConfigScreen {
 
 		// ---- Mode B
 		ConfigCategory modeB = builder.getOrCreateCategory(Component.literal("Mode B"));
+		modeB.addEntry(eb.startTextDescription(Component.literal(
+				"Mode B turns your camera toward the target by itself. Many servers forbid aim assistance, and a server can switch Mode B off.")).build());
+		modeB.addEntry(toggle(eb, "Allow Mode B", KestrelSettings.MODE_B_ENABLED, v -> KestrelSettings.MODE_B_ENABLED = v));
+		modeB.addEntry(toggle(eb, "Remind me about server rules when I use Mode B on a server", KestrelSettings.MODE_B_SERVER_WARNING,
+				v -> KestrelSettings.MODE_B_SERVER_WARNING = v));
+		modeB.addEntry(toggle(eb, "Aim for the head (the middle of the hitbox while the target is in the air or the head is covered)",
+				KestrelSettings.MODE_B_AIM_HEAD, v -> KestrelSettings.MODE_B_AIM_HEAD = v));
+		modeB.addEntry(eb.startTextDescription(Component.literal("Who Mode B may target (instead of the Mode A list):")).build());
+		modeB.addEntry(toggle(eb, "Players", KestrelSettings.MODE_B_LOCK_PLAYERS, v -> KestrelSettings.MODE_B_LOCK_PLAYERS = v));
+		modeB.addEntry(toggle(eb, "Hostile mobs", KestrelSettings.MODE_B_LOCK_HOSTILE_MOBS, v -> KestrelSettings.MODE_B_LOCK_HOSTILE_MOBS = v));
+		modeB.addEntry(toggle(eb, "Animals", KestrelSettings.MODE_B_LOCK_ANIMALS, v -> KestrelSettings.MODE_B_LOCK_ANIMALS = v));
+		modeB.addEntry(toggle(eb, "Villagers and traders", KestrelSettings.MODE_B_LOCK_VILLAGERS, v -> KestrelSettings.MODE_B_LOCK_VILLAGERS = v));
+		modeB.addEntry(toggle(eb, "Other creatures", KestrelSettings.MODE_B_LOCK_OTHER, v -> KestrelSettings.MODE_B_LOCK_OTHER = v));
 		modeB.addEntry(eb.startDoubleField(Component.literal("Camera turn speed (degrees per second)"), KestrelSettings.MODE_B_TURN_DEG_PER_SEC)
 				.setMin(30.0D).setMax(2000.0D).setDefaultValue(KestrelSettings.MODE_B_TURN_DEG_PER_SEC)
 				.setSaveConsumer(v -> KestrelSettings.MODE_B_TURN_DEG_PER_SEC = v).build());
@@ -170,6 +188,11 @@ public final class KestrelConfigScreen {
 			UserThemeFile.apply(chosenTheme[0], pending);
 		});
 		return builder.build();
+	}
+
+	private static me.shedaniel.clothconfig2.api.AbstractConfigListEntry<Boolean> toggle(ConfigEntryBuilder eb, String name,
+			boolean value, java.util.function.Consumer<Boolean> save) {
+		return eb.startBooleanToggle(Component.literal(name), value).setDefaultValue(value).setSaveConsumer(save::accept).build();
 	}
 
 	private static void putBool(Map<String, JsonElement> pending, String path, boolean initial, boolean value) {

@@ -85,7 +85,7 @@ public final class LockController {
 			forget();
 			return;
 		}
-		boolean drawing = HeldWeapon.current(player, 1.0F) != null;
+		boolean drawing = HeldWeapon.current(player, 1.0F) != null && ServerPolicy.allowLock(mc);
 		if (!drawing) {
 			if (isLocked()) {
 				lockedId = -1;
@@ -110,6 +110,9 @@ public final class LockController {
 			}
 		}
 
+		if (AimMode.modeB(mc)) {
+			AimMode.warnOnce(mc);
+		}
 		Vec3 eye = player.getEyePosition();
 		Vec3 look = player.getViewVector(1.0F);
 		List<Entity> nearby = level.getEntities(player, player.getBoundingBox().inflate(LockRange.fullCharge()),

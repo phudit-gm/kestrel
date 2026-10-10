@@ -51,17 +51,39 @@ public final class KestrelSettings {
 	public static volatile int MODE_B_SWITCH_COOLDOWN_TICKS = 10;
 	/** The accumulated mouse movement is multiplied by this every tick, so slow drift never adds up. */
 	public static final double MODE_B_ACCUM_DECAY = 0.9D;
+	/** Mode B aims for the head when the target stands on the ground and the head is in the open; otherwise the middle of the hitbox. */
+	public static volatile boolean MODE_B_AIM_HEAD = true;
+	/** Seconds the aim point stays on head or body before it may change again, so a hopping target does not make the camera jitter. */
+	public static final double MODE_B_AIM_SWITCH_SECONDS = 0.25D;
 	/** Passes of the aim solver. */
 	public static final int AIM_SOLVER_ITERATIONS = 6;
 
 	/** Logs where each shot at a predicted target really landed ([kestrel-shot] in latest.log). Off by default. */
 	public static volatile boolean DEBUG_SHOT_LOG = false;
 
-	// --- Lock filter ---
-	public static volatile boolean LOCK_HOSTILE_MOBS = true;
+	// --- Lock filter: which kinds of entity may be targeted ---
+	// Mode A (preview) and Mode B (camera turns by itself) have their own sets, so Mode B can be stricter.
 	public static volatile boolean LOCK_PLAYERS = true;
-	public static volatile boolean LOCK_EXCLUDE_VILLAGERS = true;
+	public static volatile boolean LOCK_HOSTILE_MOBS = true;
+	public static volatile boolean LOCK_ANIMALS = false;
+	public static volatile boolean LOCK_VILLAGERS = false;
+	public static volatile boolean LOCK_OTHER = false;
 	public static volatile boolean LOCK_EXCLUDE_TAMED = true;
+	public static volatile boolean MODE_B_LOCK_PLAYERS = false;
+	public static volatile boolean MODE_B_LOCK_HOSTILE_MOBS = true;
+	public static volatile boolean MODE_B_LOCK_ANIMALS = false;
+	public static volatile boolean MODE_B_LOCK_VILLAGERS = false;
+	public static volatile boolean MODE_B_LOCK_OTHER = false;
+	/** Entity ids (minecraft:creeper, or modid:* for a whole mod) that are always targetable in both modes. */
+	public static volatile java.util.List<String> LOCK_ALWAYS_IDS = java.util.List.of();
+	/** Entity ids that are never targetable; wins over the always list. */
+	public static volatile java.util.List<String> LOCK_NEVER_IDS = java.util.List.of();
+
+	// --- Mode B availability ---
+	/** Master switch for Mode B on this client. A server can switch it off too (see ServerPolicy). */
+	public static volatile boolean MODE_B_ENABLED = true;
+	/** Show the fair-play warning in chat the first time Mode B is chosen on a multiplayer server each session. */
+	public static volatile boolean MODE_B_SERVER_WARNING = true;
 
 	private KestrelSettings() {
 	}

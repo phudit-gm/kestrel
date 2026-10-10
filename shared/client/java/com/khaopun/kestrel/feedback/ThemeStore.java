@@ -18,7 +18,7 @@ import net.fabricmc.loader.api.FabricLoader;
 public final class ThemeStore {
 	private static final String USER_FILE_TEMPLATE = """
 			{
-			  "theme": "khaopun",
+			  "theme": "pixel_gradient",
 			  "enabled": {
 			    "trajectory": true,
 			    "impact": true,

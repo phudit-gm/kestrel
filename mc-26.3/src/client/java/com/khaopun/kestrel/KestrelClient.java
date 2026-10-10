@@ -22,6 +22,7 @@ public class KestrelClient implements ClientModInitializer {
 		FeedbackLayer.init();
 		HeldWeapon.setProjectileReader(charged -> charged.itemCopies().toList());
 		AimMode.setMessenger((player, text) -> player.sendOverlayMessage(text));
+		AimMode.setChatMessenger((player, text) -> player.sendSystemMessage(text));
 		ModeKey.register(KeyMappingHelper::registerKeyMapping);
 		// Fires while the per-frame gizmo collector is active, so gizmos added here are drawn this frame.
 		LevelRenderEvents.BEFORE_GIZMOS.register(context -> SightController.update(Minecraft.getInstance()));

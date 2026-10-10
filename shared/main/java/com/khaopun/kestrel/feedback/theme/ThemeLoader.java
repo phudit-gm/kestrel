@@ -20,7 +20,7 @@ import org.slf4j.Logger;
  */
 public final class ThemeLoader {
 	public static final String FALLBACK_THEME = "classic";
-	public static final String DEFAULT_THEME = "khaopun";
+	public static final String DEFAULT_THEME = "pixel_gradient";
 
 	private ThemeLoader() {
 	}
@@ -48,6 +48,9 @@ public final class ThemeLoader {
 		}
 
 		String requested = user.has("theme") && user.get("theme").isJsonPrimitive() ? user.get("theme").getAsString() : DEFAULT_THEME;
+		if ("khaopun".equals(requested)) {
+			requested = DEFAULT_THEME; // the default theme's old name, kept so existing theme.json files still work
+		}
 		String used = requested;
 		JsonObject base = FALLBACK_THEME.equals(requested) ? fallback.deepCopy() : bundledOrNull(bundled, requested, log);
 		if (base == null) {

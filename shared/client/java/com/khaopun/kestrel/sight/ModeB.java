@@ -33,6 +33,36 @@ public final class ModeB {
 	private ModeB() {
 	}
 
+	private static boolean aimingHead;
+	private static long lastAimSwitchNanos;
+
+	/**
+	 * Where Mode B points the arrow: the head (eye height of the predicted position) while the target is on the
+	 * ground and nothing solid is in the straight line to the head; otherwise the middle of the hitbox, which is
+	 * the safer spot while the target jumps or falls or when only the body is exposed. The choice is held for a short
+	 * time so a target that hops does not make the camera jump between the two.
+	 *
+	 * @param ghost the target's hitbox moved to its predicted position
+	 */
+	public static Vec3 aimPoint(Minecraft mc, LocalPlayer player, Entity target, net.minecraft.world.phys.AABB ghost, Vec3 start) {
+		Vec3 center = ghost.getCenter();
+		if (!KestrelSettings.MODE_B_AIM_HEAD) {
+			return center;
+		}
+		double headY = Math.min(ghost.minY + target.getEyeHeight(), ghost.maxY - 0.1D);
+		Vec3 head = new Vec3(center.x, headY, center.z);
+		boolean wantHead = target.onGround() && !target.isInWater()
+				&& mc.level.clip(new net.minecraft.world.level.ClipContext(start, head,
+						net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, player))
+						.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
+		long now = System.nanoTime();
+		if (wantHead != aimingHead && now - lastAimSwitchNanos > KestrelSettings.MODE_B_AIM_SWITCH_SECONDS * 1.0e9D) {
+			aimingHead = wantHead;
+			lastAimSwitchNanos = now;
+		}
+		return aimingHead ? head : center;
+	}
+
 	/** Evaluated live, so any exit condition gives the mouse back at once. */
 	public static boolean isActive(Minecraft mc) {
 		LocalPlayer player = mc.player;
