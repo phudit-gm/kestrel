@@ -31,15 +31,22 @@ public final class InterceptSolver {
 	 * @return the first (flattest) intercept, or null if the arrow can never catch the target
 	 */
 	public static @Nullable Intercept solve(Vec3 start, double speed, Vec3 target, Vec3 velocity, double latencyTicks) {
+		return solve(start, speed, target, velocity, latencyTicks, FlightModel.ARROW,
+				KestrelSettings.INTERCEPT_MAX_FLIGHT_TICKS);
+	}
+
+	/** Same, for any projectile; {@code maxTicks} is the longest flight to consider. */
+	public static @Nullable Intercept solve(Vec3 start, double speed, Vec3 target, Vec3 velocity, double latencyTicks,
+			FlightModel model, int maxTicks) {
 		boolean tooSlowBefore = true;
-		for (int t = 1; t <= KestrelSettings.INTERCEPT_MAX_FLIGHT_TICKS; t++) {
-			double f = excessSpeed(start, speed, target, velocity, latencyTicks, t);
+		for (int t = 1; t <= maxTicks; t++) {
+			double f = excessSpeed(start, speed, target, velocity, latencyTicks, model, t);
 			if (tooSlowBefore && f <= 0.0D) {
 				double lo = Math.max(t - 1, MIN_FLIGHT_TICKS);
 				double hi = t;
 				for (int i = 0; i < BISECTIONS; i++) {
 					double mid = (lo + hi) / 2.0D;
-					if (excessSpeed(start, speed, target, velocity, latencyTicks, mid) > 0.0D) {
+					if (excessSpeed(start, speed, target, velocity, latencyTicks, model, mid) > 0.0D) {
 						lo = mid;
 					} else {
 						hi = mid;
@@ -53,10 +60,10 @@ public final class InterceptSolver {
 	}
 
 	/** Launch speed an arrow needs to be at the target after {@code t} ticks, minus the speed available. */
-	private static double excessSpeed(Vec3 start, double speed, Vec3 target, Vec3 velocity, double latencyTicks, double t) {
-		double drag = ArrowPhysics.AIR_DRAG;
-		double a = (1.0D - Math.pow(drag, t)) / (1.0D - drag);
-		double g = -ArrowPhysics.GRAVITY / (1.0D - drag) * (t - a);
+	private static double excessSpeed(Vec3 start, double speed, Vec3 target, Vec3 velocity, double latencyTicks,
+			FlightModel model, double t) {
+		double a = model.travelFactor(t);
+		double g = model.gravityDrop(t);
 		Vec3 p = targetAt(target, velocity, latencyTicks, t);
 		Vec3 v0 = new Vec3((p.x - start.x) / a, (p.y - start.y - g) / a, (p.z - start.z) / a);
 		return v0.length() - speed;

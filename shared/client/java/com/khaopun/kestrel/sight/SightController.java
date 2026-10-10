@@ -8,6 +8,7 @@ import com.khaopun.kestrel.core.LockRange;
 import com.khaopun.kestrel.core.Prediction;
 import com.khaopun.kestrel.core.Predictor;
 import com.khaopun.kestrel.core.ProjectileSimulator;
+import com.khaopun.kestrel.core.ShotProfile;
 import com.khaopun.kestrel.core.TargetMotion;
 import com.khaopun.kestrel.core.TrajectoryResult;
 import com.khaopun.kestrel.feedback.Candidate;
@@ -23,7 +24,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.item.BowItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -50,24 +50,22 @@ public final class SightController {
 	private static void emitEvents(Minecraft mc) {
 		LocalPlayer player = mc.player;
 		Level level = mc.level;
-		if (player == null || level == null || !player.isUsingItem() || !(player.getUseItem().getItem() instanceof BowItem)) {
+		if (player == null || level == null) {
 			return;
 		}
 
 		float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-		float power = ArrowPhysics.powerForTime(player.getTicksUsingItem() + partial);
-		if (power < ArrowPhysics.MIN_POWER) {
+		ShotProfile shot = HeldWeapon.current(player, partial);
+		if (shot == null) {
 			return;
 		}
-		boolean fullyCharged = power >= ArrowPhysics.FULL_CHARGE_POWER;
+		boolean fullyCharged = shot.fullyCharged();
 
-		// Launch state, as Projectile#shootFromRotation + the arrow's owner constructor build it.
+		// Launch state, as Projectile#shootFromRotation (bow, trident) or Projectile#shoot (crossbow) builds it.
 		Vec3 eye = player.getEyePosition(partial);
-		Vec3 start = eye.subtract(0.0D, ArrowPhysics.SPAWN_EYE_OFFSET, 0.0D);
+		Vec3 start = eye.subtract(0.0D, shot.model().spawnDrop(), 0.0D);
 		Vec3 look = ArrowPhysics.direction(player.getViewXRot(partial), player.getViewYRot(partial));
-		Vec3 movement = player.getKnownMovement();
-		Vec3 velocity = look.scale(power * ArrowPhysics.SPEED_PER_POWER)
-				.add(movement.x, player.onGround() ? 0.0D : movement.y, movement.z);
+		Vec3 velocity = launchVelocity(player, shot, look);
 
 		// One entity query per frame, shared by the simulator and the candidate list.
 		double range = LockRange.fullCharge();
@@ -75,7 +73,7 @@ public final class SightController {
 				e -> e.isAlive() && e.isPickable() && !e.isSpectator());
 
 		TrajectoryResult result = ProjectileSimulator.simulate(level, player, start, velocity, nearby,
-				KestrelSettings.TRAJECTORY_MAX_TICKS);
+				shot.maxTicks(), shot.model());
 
 		boolean rightHanded = (player.getUsedItemHand() == InteractionHand.MAIN_HAND)
 				== (player.getMainArm() == HumanoidArm.RIGHT);
@@ -85,6 +83,14 @@ public final class SightController {
 		SightFrame frame = new SightFrame(eye, look, side, result.points(), result.impact(), fullyCharged);
 		FeedbackBus.emit(FeedbackEvent.TRAJECTORY_VISIBLE, frame);
 		FeedbackBus.emit(FeedbackEvent.IMPACT_POINT, frame);
+		// Multishot: the side projectiles get their own lines. Lock, ghost and Mode B use the centre one only.
+		for (double angle : shot.extraAngles()) {
+			Vec3 sideLook = rotateAroundUp(player, look, angle);
+			TrajectoryResult sideResult = ProjectileSimulator.simulate(level, player, start,
+					launchVelocity(player, shot, sideLook), nearby, shot.maxTicks(), shot.model());
+			FeedbackBus.emit(FeedbackEvent.TRAJECTORY_EXTRA, new SightFrame(eye, sideLook, side, sideResult.points(),
+					sideResult.impact(), fullyCharged));
+		}
 		if (fullyCharged) {
 			FeedbackBus.emit(FeedbackEvent.FULL_CHARGE, frame);
 		}
@@ -103,12 +109,31 @@ public final class SightController {
 			}
 		}
 
-		emitPrediction(mc, player, start, power, result);
-		emitOthers(mc, player, start, power, lockable, partial);
+		emitPrediction(mc, player, start, shot, result);
+		emitOthers(mc, player, start, shot, lockable, partial);
+	}
+
+	/** Launch velocity of one projectile: aim direction times speed, plus the shooter's motion where the game adds it. */
+	private static Vec3 launchVelocity(LocalPlayer player, ShotProfile shot, Vec3 direction) {
+		Vec3 velocity = direction.scale(shot.speed());
+		if (shot.addsShooterMotion()) {
+			Vec3 movement = player.getKnownMovement();
+			velocity = velocity.add(movement.x, player.onGround() ? 0.0D : movement.y, movement.z);
+		}
+		return velocity;
+	}
+
+	/** Rotates a direction around the player's up axis, as CrossbowItem does for Multishot (Rodrigues' formula). */
+	private static Vec3 rotateAroundUp(LocalPlayer player, Vec3 direction, double degrees) {
+		Vec3 axis = player.getUpVector(1.0F).normalize();
+		double rad = Math.toRadians(degrees);
+		double cos = Math.cos(rad);
+		double sin = Math.sin(rad);
+		return direction.scale(cos).add(axis.cross(direction).scale(sin)).add(axis.scale(axis.dot(direction) * (1.0D - cos)));
 	}
 
 	/** Predicts the nearest unlocked candidates too, so the player can see where each one is heading. */
-	private static void emitOthers(Minecraft mc, LocalPlayer player, Vec3 start, float power, List<Entity> lockable, float partial) {
+	private static void emitOthers(Minecraft mc, LocalPlayer player, Vec3 start, ShotProfile shot, List<Entity> lockable, float partial) {
 		int budget = KestrelSettings.PREDICT_MAX_OTHERS;
 		double ping = pingMillis(mc, player);
 		Entity locked = LockController.target(mc);
@@ -124,7 +149,8 @@ public final class SightController {
 				continue;
 			}
 			AABB box = entity.getBoundingBox();
-			Prediction prediction = Predictor.predict(motion, start, power, ping, (box.maxY - box.minY) / 2.0D);
+			Prediction prediction = Predictor.predict(motion, start, shot.speed(), shot.model(), shot.maxTicks(), ping,
+					(box.maxY - box.minY) / 2.0D);
 			if (prediction.kind() == Prediction.Kind.UNREACHABLE) {
 				continue;
 			}
@@ -136,21 +162,22 @@ public final class SightController {
 	}
 
 	/** Predicts where the locked target will be and announces whether the arrow's path touches that spot. */
-	private static void emitPrediction(Minecraft mc, LocalPlayer player, Vec3 start, float power, TrajectoryResult result) {
+	private static void emitPrediction(Minecraft mc, LocalPlayer player, Vec3 start, ShotProfile shot, TrajectoryResult result) {
 		Entity target = LockController.target(mc);
 		if (target == null || LockController.motion().isEmpty()) {
 			return;
 		}
 		AABB box = target.getBoundingBox();
 		double bodyHeight = (box.maxY - box.minY) / 2.0D;
-		Prediction prediction = Predictor.predict(LockController.motion(), start, power, pingMillis(mc, player), bodyHeight);
+		Prediction prediction = Predictor.predict(LockController.motion(), start, shot.speed(), shot.model(), shot.maxTicks(),
+				pingMillis(mc, player), bodyHeight);
 		// The box is where the target is now, moved by the difference to the predicted position.
 		Vec3 shift = prediction.aim().subtract(target.position());
 		AABB ghost = box.move(shift);
 		DebugShots.recordPrediction(player, target, prediction);
 
 		boolean turning = prediction.kind() != Prediction.Kind.UNREACHABLE
-				&& ModeB.drive(mc, player, start, power, ghost.getCenter());
+				&& ModeB.drive(mc, player, start, shot, ghost.getCenter());
 
 		boolean aligned = prediction.kind() != Prediction.Kind.UNREACHABLE && pathTouches(result.points(), ghost);
 		GhostInfo info = new GhostInfo(target.getId(), ghost, prediction.kind(), aligned);

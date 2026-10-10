@@ -82,6 +82,7 @@ public final class FeedbackLayer implements FeedbackListener {
 
 	// --- inputs collected during one frame ---
 	private SightFrame frameIn;
+	private final List<SightFrame> extraFramesIn = new ArrayList<>();
 	private boolean impactIn;
 	private boolean fullIn;
 	private final Map<Integer, Candidate> candidatesIn = new HashMap<>();
@@ -120,6 +121,7 @@ public final class FeedbackLayer implements FeedbackListener {
 		switch (event) {
 			case TRAJECTORY_VISIBLE -> frameIn = (SightFrame) payload;
 			case IMPACT_POINT -> impactIn = true;
+			case TRAJECTORY_EXTRA -> extraFramesIn.add((SightFrame) payload);
 			case FULL_CHARGE -> fullIn = true;
 			case CANDIDATE_IN_RANGE -> {
 				Candidate c = (Candidate) payload;
@@ -176,6 +178,10 @@ public final class FeedbackLayer implements FeedbackListener {
 		if (lastFrame != null) {
 			if (trajectory.visible()) {
 				drawTrajectory(th, lastFrame, ease(th, "animation.easing", trajectory.value), easedFull(th), seconds);
+				double sideAlpha = ease(th, "animation.easing", trajectory.value) * th.num("trajectory.extraAlpha");
+				for (SightFrame extra : extraFramesIn) {
+					drawTrajectory(th, extra, sideAlpha, easedFull(th), seconds);
+				}
 			}
 			if (impact.visible()) {
 				drawImpact(th, lastFrame, ease(th, "animation.easing", impact.value), seconds);
@@ -189,6 +195,7 @@ public final class FeedbackLayer implements FeedbackListener {
 		drawCrosshairLabels(th, seconds);
 
 		frameIn = null;
+		extraFramesIn.clear();
 		impactIn = false;
 		fullIn = false;
 		candidatesIn.clear();

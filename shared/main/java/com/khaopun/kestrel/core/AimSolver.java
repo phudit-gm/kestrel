@@ -19,11 +19,15 @@ public final class AimSolver {
 	 * @return {yaw, pitch} in degrees, in the game's rotation convention
 	 */
 	public static float[] solve(Vec3 start, double speed, Vec3 motion, Vec3 point) {
+		return solve(start, speed, motion, point, FlightModel.ARROW);
+	}
+
+	public static float[] solve(Vec3 start, double speed, Vec3 motion, Vec3 point, FlightModel model) {
 		Vec3 target = point;
 		for (int i = 0; i < KestrelSettings.AIM_SOLVER_ITERATIONS; i++) {
 			float[] angles = anglesTo(target.subtract(start));
 			Vec3 velocity = ArrowPhysics.direction(angles[1], angles[0]).scale(speed).add(motion);
-			Vec3 error = point.subtract(closestApproach(start, velocity, point));
+			Vec3 error = point.subtract(closestApproach(start, velocity, point, model));
 			if (error.length() < 0.02D) {
 				break;
 			}
@@ -39,7 +43,7 @@ public final class AimSolver {
 		return new float[] {(float) yaw, (float) pitch};
 	}
 
-	private static Vec3 closestApproach(Vec3 start, Vec3 velocity, Vec3 point) {
+	private static Vec3 closestApproach(Vec3 start, Vec3 velocity, Vec3 point, FlightModel model) {
 		Vec3 pos = start;
 		Vec3 vel = velocity;
 		Vec3 best = start;
@@ -56,7 +60,7 @@ public final class AimSolver {
 				best = q;
 			}
 			pos = next;
-			vel = vel.scale(ArrowPhysics.AIR_DRAG).add(0.0D, -ArrowPhysics.GRAVITY, 0.0D);
+			vel = vel.scale(model.airDrag()).add(0.0D, -model.gravity(), 0.0D);
 		}
 		return best;
 	}

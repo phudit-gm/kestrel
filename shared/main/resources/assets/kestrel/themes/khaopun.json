@@ -21,6 +21,7 @@
   "distanceFade": { "start": 1.5, "end": 4.0 },
 
   "trajectory": {
+    "extraAlpha": 0.55,
     "style": "beads",
     "beadSize": 6.0,
     "spacing": 0.7,

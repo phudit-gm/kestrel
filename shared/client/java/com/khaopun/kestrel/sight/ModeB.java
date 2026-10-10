@@ -4,14 +4,13 @@ import java.util.List;
 
 import com.khaopun.kestrel.KestrelSettings;
 import com.khaopun.kestrel.core.AimSolver;
-import com.khaopun.kestrel.core.ArrowPhysics;
 import com.khaopun.kestrel.core.LockRange;
+import com.khaopun.kestrel.core.ShotProfile;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.BowItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -36,8 +35,8 @@ public final class ModeB {
 	/** Evaluated live, so any exit condition gives the mouse back at once. */
 	public static boolean isActive(Minecraft mc) {
 		LocalPlayer player = mc.player;
-		return player != null && mc.level != null && mc.mouseHandler.isMouseGrabbed() && player.isAlive() && player.isUsingItem()
-				&& player.getUseItem().getItem() instanceof BowItem && LockController.isLocked() && AimMode.modeB(mc);
+		return player != null && mc.level != null && mc.mouseHandler.isMouseGrabbed() && player.isAlive()
+				&& HeldWeapon.current(player, 1.0F) != null && LockController.isLocked() && AimMode.modeB(mc);
 	}
 
 	/** Called by the Entity#turn mixin. Returns true if the turn must be swallowed. */
@@ -115,7 +114,7 @@ public final class ModeB {
 	 *
 	 * @return true while the camera is still turning (the target box flashes)
 	 */
-	public static boolean drive(Minecraft mc, LocalPlayer player, Vec3 start, float power, Vec3 aimPoint) {
+	public static boolean drive(Minecraft mc, LocalPlayer player, Vec3 start, ShotProfile shot, Vec3 aimPoint) {
 		long now = System.nanoTime();
 		double dt = Math.min(0.1D, (now - lastNanos) / 1.0e9D);
 		lastNanos = now;
@@ -123,8 +122,8 @@ public final class ModeB {
 			return false;
 		}
 		Vec3 movement = player.getKnownMovement();
-		Vec3 motion = new Vec3(movement.x, player.onGround() ? 0.0D : movement.y, movement.z);
-		float[] want = AimSolver.solve(start, power * ArrowPhysics.SPEED_PER_POWER, motion, aimPoint);
+		Vec3 motion = shot.addsShooterMotion() ? new Vec3(movement.x, player.onGround() ? 0.0D : movement.y, movement.z) : Vec3.ZERO;
+		float[] want = AimSolver.solve(start, shot.speed(), motion, aimPoint, shot.model());
 
 		float yaw = player.getYRot();
 		float pitch = player.getXRot();

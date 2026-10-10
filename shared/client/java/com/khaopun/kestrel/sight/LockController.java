@@ -14,7 +14,6 @@ import com.khaopun.kestrel.feedback.UnlockInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.BowItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -81,7 +80,7 @@ public final class LockController {
 			forget();
 			return;
 		}
-		boolean drawing = player.isUsingItem() && player.getUseItem().getItem() instanceof BowItem;
+		boolean drawing = HeldWeapon.current(player, 1.0F) != null;
 		if (!drawing) {
 			if (isLocked()) {
 				lockedId = -1;

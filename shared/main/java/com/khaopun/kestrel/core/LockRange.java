@@ -24,7 +24,7 @@ public final class LockRange {
 	}
 
 	private static double compute() {
-		double speed = ArrowPhysics.FULL_CHARGE_POWER * ArrowPhysics.SPEED_PER_POWER;
+		double speed = WeaponPhysics.CROSSBOW_ARROW_SPEED; // the fastest arrow of any weapon
 		double best = 0.0D;
 		for (float pitch = -90.0F; pitch <= 90.0F; pitch += PITCH_STEP) {
 			Vec3 vel = ArrowPhysics.direction(pitch, 0.0F).scale(speed);

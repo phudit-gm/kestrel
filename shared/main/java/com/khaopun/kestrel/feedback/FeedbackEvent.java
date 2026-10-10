@@ -7,6 +7,8 @@ package com.khaopun.kestrel.feedback;
 public enum FeedbackEvent {
 	TRAJECTORY_VISIBLE,
 	IMPACT_POINT,
+	/** Multishot: one per side projectile, every frame. Payload {@link SightFrame}. */
+	TRAJECTORY_EXTRA,
 	CANDIDATE_IN_RANGE,
 	TARGET_UNDER_TRAJECTORY,
 	FULL_CHARGE,

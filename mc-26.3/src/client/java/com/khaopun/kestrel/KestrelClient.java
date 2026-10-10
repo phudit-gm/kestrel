@@ -3,6 +3,7 @@ package com.khaopun.kestrel;
 import com.khaopun.kestrel.feedback.FeedbackLayer;
 import com.khaopun.kestrel.feedback.ReloadCommand;
 import com.khaopun.kestrel.sight.AimMode;
+import com.khaopun.kestrel.sight.HeldWeapon;
 import com.khaopun.kestrel.sight.ModeKey;
 import com.khaopun.kestrel.sight.SightController;
 
@@ -17,6 +18,7 @@ public class KestrelClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		FeedbackLayer.init();
+		HeldWeapon.setProjectileReader(charged -> charged.itemCopies().toList());
 		AimMode.setMessenger((player, text) -> player.sendOverlayMessage(text));
 		ModeKey.register(KeyMappingHelper::registerKeyMapping);
 		// Fires while the per-frame gizmo collector is active, so gizmos added here are drawn this frame.

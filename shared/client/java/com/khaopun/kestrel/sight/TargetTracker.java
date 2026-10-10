@@ -12,7 +12,6 @@ import com.khaopun.kestrel.core.TargetMotion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.BowItem;
 import net.minecraft.world.level.Level;
 
 import org.jspecify.annotations.Nullable;
@@ -40,8 +39,7 @@ public final class TargetTracker {
 	public static void onTick(Minecraft mc) {
 		LocalPlayer player = mc.player;
 		Level level = mc.level;
-		if (player == null || level == null
-				|| !(player.getMainHandItem().getItem() instanceof BowItem || player.getOffhandItem().getItem() instanceof BowItem)) {
+		if (player == null || level == null || !HeldWeapon.holdingAny(player)) {
 			MOTIONS.clear();
 			return;
 		}

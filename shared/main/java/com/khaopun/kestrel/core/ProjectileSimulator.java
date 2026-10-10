@@ -48,6 +48,12 @@ public final class ProjectileSimulator {
 	 */
 	public static TrajectoryResult simulate(Level level, @Nullable Entity shooter, Vec3 start, Vec3 startVelocity,
 			List<Entity> candidates, int maxTicks) {
+		return simulate(level, shooter, start, startVelocity, candidates, maxTicks, FlightModel.ARROW);
+	}
+
+	/** Same, for any projectile: gravity and drag come from {@code model}. */
+	public static TrajectoryResult simulate(Level level, @Nullable Entity shooter, Vec3 start, Vec3 startVelocity,
+			List<Entity> candidates, int maxTicks, FlightModel model) {
 		List<Vec3> points = new ArrayList<>(maxTicks + 1);
 		Vec3 pos = start;
 		Vec3 vel = startVelocity;
@@ -57,7 +63,7 @@ public final class ProjectileSimulator {
 
 		for (int tick = 0; tick < maxTicks; tick++) {
 			if (isInWater(level, pos)) {
-				vel = vel.scale(ArrowPhysics.WATER_DRAG);
+				vel = vel.scale(model.waterDrag());
 			}
 
 			Vec3 next = pos.add(vel);
@@ -100,9 +106,9 @@ public final class ProjectileSimulator {
 			pos = next;
 			points.add(pos);
 			if (!isInWater(level, pos)) {
-				vel = vel.scale(ArrowPhysics.AIR_DRAG);
+				vel = vel.scale(model.airDrag());
 			}
-			vel = vel.add(0.0D, -ArrowPhysics.GRAVITY, 0.0D);
+			vel = vel.add(0.0D, -model.gravity(), 0.0D);
 
 			if (pos.y < minY) {
 				break;
