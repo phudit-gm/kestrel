@@ -59,6 +59,7 @@
   },
 
   "locked": {
+    "turningFlashHz": 6.0,
     "frame": "pixelCorners",
     "color": { "mode": "gradient", "stops": ["#7FF0FF", "#B58CFF"] },
     "inflate": 0.14,

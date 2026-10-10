@@ -22,16 +22,17 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The target lock: what is locked, when it is released, and the locked target's recent movement.
+ * The main target: chosen automatically while a bow is drawn, never by a key.
  *
- * <p>Pressing the lock key ({@link #onKey}) locks the candidate nearest the crosshair, switches to a different
- * candidate the crosshair is clearly on, or unlocks. {@link #onTick} runs every client tick: it records the
- * target's movement and releases the lock when the target dies or is removed, leaves range, is out of sight for
- * too long, or when no bow is held. Releases are announced as feedback events; nothing here decides how they look.
+ * <p>When a draw starts the candidate nearest the crosshair becomes the target. In Mode A the target then follows
+ * the crosshair (it switches when the crosshair is clearly on another candidate); in Mode B it only changes through
+ * {@link ModeB}. It is released silently when the draw ends, and with a "lost" announcement when the target dies,
+ * leaves range or stays out of sight for too long. Nothing here decides how anything looks.
  */
 public final class LockController {
+	private static final TargetMotion NO_MOTION = new TargetMotion();
+
 	private static int lockedId = -1;
-	private static final TargetMotion MOTION = new TargetMotion();
 	private static int noSightTicks;
 	private static AABB lastBox;
 	private static final List<Object[]> PENDING = new ArrayList<>();
@@ -47,8 +48,10 @@ public final class LockController {
 		return mc.level == null || lockedId < 0 ? null : mc.level.getEntity(lockedId);
 	}
 
+	/** Recorded movement of the target; empty if there is no target. */
 	public static TargetMotion motion() {
-		return MOTION;
+		TargetMotion motion = lockedId < 0 ? null : TargetTracker.motion(lockedId);
+		return motion == null ? NO_MOTION : motion;
 	}
 
 	/** Lockable entities within range of the player, nearest first. */
@@ -64,43 +67,9 @@ public final class LockController {
 		return out;
 	}
 
-	public static void onKey(Minecraft mc) {
-		LocalPlayer player = mc.player;
-		Level level = mc.level;
-		if (player == null || level == null) {
-			return;
-		}
-		float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-		Vec3 eye = player.getEyePosition(partial);
-		Vec3 look = player.getViewVector(partial);
-		double range = LockRange.fullCharge();
-		List<Entity> nearby = level.getEntities(player, player.getBoundingBox().inflate(range),
-				e -> e.isAlive() && e.isPickable() && !e.isSpectator());
-		List<Entity> candidates = lockable(player, level, eye, nearby);
-
-		Entity best = null;
-		double bestAngle = Double.MAX_VALUE;
-		for (Entity entity : candidates) {
-			double angle = angleDegrees(look, entity.getBoundingBox().getCenter().subtract(eye));
-			if (angle < bestAngle) {
-				bestAngle = angle;
-				best = entity;
-			}
-		}
-
-		if (!isLocked()) {
-			if (best != null && bestAngle <= KestrelSettings.LOCK_MAX_ANGLE_DEGREES) {
-				lock(best);
-			}
-			return;
-		}
-		if (best != null && best.getId() != lockedId && bestAngle <= KestrelSettings.LOCK_SWITCH_ANGLE_DEGREES) {
-			release(false); // switching: no "unlocked" announcement for the old target
-			lock(best);
-			return;
-		}
-		release(true);
-		announceUnlock(FeedbackEvent.TARGET_UNLOCKED);
+	/** Used by Mode B when the mouse flicks toward another candidate. */
+	public static void switchTo(Entity entity) {
+		lock(entity);
 	}
 
 	/** Runs every client tick. */
@@ -112,34 +81,53 @@ public final class LockController {
 			forget();
 			return;
 		}
-		if (!isLocked()) {
+		boolean drawing = player.isUsingItem() && player.getUseItem().getItem() instanceof BowItem;
+		if (!drawing) {
+			if (isLocked()) {
+				lockedId = -1;
+				noSightTicks = 0;
+			}
 			return;
 		}
-		Entity target = level.getEntity(lockedId);
-		if (target == null || !target.isAlive() || target.isRemoved()) {
-			release(true);
-			announceUnlock(FeedbackEvent.TARGET_LOST);
-			return;
+
+		if (isLocked()) {
+			Entity target = level.getEntity(lockedId);
+			if (target == null || !target.isAlive() || target.isRemoved()) {
+				lose();
+			} else {
+				lastBox = target.getBoundingBox();
+				if (target.getBoundingBox().distanceToSqr(player.getEyePosition()) > LockRange.fullCharge() * LockRange.fullCharge()) {
+					lose();
+				} else if (player.hasLineOfSight(target)) {
+					noSightTicks = 0;
+				} else if (++noSightTicks > KestrelSettings.LOCK_NO_LINE_OF_SIGHT_TICKS) {
+					lose();
+				}
+			}
 		}
-		lastBox = target.getBoundingBox();
-		MOTION.record(target.position());
 
 		Vec3 eye = player.getEyePosition();
-		if (target.getBoundingBox().distanceToSqr(eye) > LockRange.fullCharge() * LockRange.fullCharge()) {
-			release(true);
-			announceUnlock(FeedbackEvent.TARGET_LOST);
+		Vec3 look = player.getViewVector(1.0F);
+		List<Entity> nearby = level.getEntities(player, player.getBoundingBox().inflate(LockRange.fullCharge()),
+				e -> e.isAlive() && e.isPickable() && !e.isSpectator());
+		Entity best = null;
+		double bestAngle = Double.MAX_VALUE;
+		for (Entity entity : lockable(player, level, eye, nearby)) {
+			double angle = angleDegrees(look, entity.getBoundingBox().getCenter().subtract(eye));
+			if (angle < bestAngle) {
+				bestAngle = angle;
+				best = entity;
+			}
+		}
+		if (best == null) {
 			return;
 		}
-		if (player.hasLineOfSight(target)) {
-			noSightTicks = 0;
-		} else if (++noSightTicks > KestrelSettings.LOCK_NO_LINE_OF_SIGHT_TICKS) {
-			release(true);
-			announceUnlock(FeedbackEvent.TARGET_LOST);
-			return;
-		}
-		if (!(player.getMainHandItem().getItem() instanceof BowItem) && !(player.getOffhandItem().getItem() instanceof BowItem)) {
-			release(true);
-			announceUnlock(FeedbackEvent.TARGET_UNLOCKED);
+		if (!isLocked()) {
+			if (bestAngle <= KestrelSettings.LOCK_MAX_ANGLE_DEGREES) {
+				lock(best);
+			}
+		} else if (!AimMode.modeB(mc) && best.getId() != lockedId && bestAngle <= KestrelSettings.LOCK_SWITCH_ANGLE_DEGREES) {
+			lock(best);
 		}
 	}
 
@@ -158,36 +146,24 @@ public final class LockController {
 
 	public static void forget() {
 		lockedId = -1;
-		MOTION.clear();
 		noSightTicks = 0;
 		PENDING.clear();
+		TargetTracker.clear();
 	}
 
 	private static void lock(Entity entity) {
 		lockedId = entity.getId();
-		MOTION.clear();
-		MOTION.record(entity.position());
 		noSightTicks = 0;
 		lastBox = entity.getBoundingBox();
 	}
 
-	/** Clears the lock; remembers the id and box so an announcement can still be made. */
-	private static void release(boolean keepForAnnouncement) {
-		if (keepForAnnouncement) {
-			announcedId = lockedId;
+	/** Releases the target and announces that it was lost. */
+	private static void lose() {
+		if (lockedId >= 0 && lastBox != null) {
+			PENDING.add(new Object[] {FeedbackEvent.TARGET_LOST, new UnlockInfo(lockedId, lastBox)});
 		}
 		lockedId = -1;
-		MOTION.clear();
 		noSightTicks = 0;
-	}
-
-	private static int announcedId = -1;
-
-	private static void announceUnlock(FeedbackEvent event) {
-		if (announcedId >= 0 && lastBox != null) {
-			PENDING.add(new Object[] {event, new UnlockInfo(announcedId, lastBox)});
-		}
-		announcedId = -1;
 	}
 
 	private static double angleDegrees(Vec3 look, Vec3 to) {

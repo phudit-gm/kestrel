@@ -1,6 +1,6 @@
 {
 	"kestrel.command.reload.done": "Kestrel theme reloaded: %s",
 	"kestrel.command.reload.problem": "Kestrel: %s",
-	"key.kestrel.lock": "Lock / switch / unlock target",
+	"key.kestrel.mode": "Switch aim mode (A / B)",
 	"key.category.kestrel.main": "Kestrel"
 }

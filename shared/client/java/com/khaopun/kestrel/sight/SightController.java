@@ -148,9 +148,15 @@ public final class SightController {
 		Vec3 shift = prediction.aim().subtract(target.position());
 		AABB ghost = box.move(shift);
 
+		boolean turning = prediction.kind() != Prediction.Kind.UNREACHABLE
+				&& ModeB.drive(mc, player, start, power, ghost.getCenter());
+
 		boolean aligned = prediction.kind() != Prediction.Kind.UNREACHABLE && pathTouches(result.points(), ghost);
 		GhostInfo info = new GhostInfo(target.getId(), ghost, prediction.kind(), aligned);
 		FeedbackBus.emit(FeedbackEvent.GHOST_PREDICTED, info);
+		if (turning) {
+			FeedbackBus.emit(FeedbackEvent.AIM_TURNING, info);
+		}
 		if (prediction.kind() == Prediction.Kind.UNREACHABLE) {
 			FeedbackBus.emit(FeedbackEvent.TARGET_UNREACHABLE, info);
 		}

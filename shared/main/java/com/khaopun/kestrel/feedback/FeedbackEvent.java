@@ -20,6 +20,8 @@ public enum FeedbackEvent {
 	GHOST_PREDICTED,
 	/** Every frame, once per unlocked candidate that is predicted. Payload {@link GhostInfo}. */
 	GHOST_OTHER,
+	/** Every frame the camera is still turning toward the aim point (Mode B). Payload {@link GhostInfo}. */
+	AIM_TURNING,
 	/** Every frame the impact point touches the ghost. Payload {@link GhostInfo}. */
 	AIM_ALIGNED,
 	/** Every frame the ghost is known but the impact point is not on it. Payload {@link GhostInfo}. */

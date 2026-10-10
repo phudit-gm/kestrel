@@ -88,6 +88,7 @@
   },
 
   "locked": {
+    "turningFlashHz": 6.0,
     "_comment": "frame around the locked target; turns into 'aligned' while the arrow path touches the ghost",
     "frame": "box",
     "color": "#FFAA00",

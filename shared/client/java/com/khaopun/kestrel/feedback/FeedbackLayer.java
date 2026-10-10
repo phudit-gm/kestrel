@@ -88,6 +88,7 @@ public final class FeedbackLayer implements FeedbackListener {
 	private final Map<Integer, Candidate> hitsIn = new HashMap<>();
 	private LockInfo lockIn;
 	private GhostInfo ghostIn;
+	private boolean turningIn;
 	private final List<GhostInfo> othersIn = new ArrayList<>();
 	private final List<UnlockInfo> unlocksIn = new ArrayList<>();
 
@@ -131,6 +132,7 @@ public final class FeedbackLayer implements FeedbackListener {
 			case TARGET_LOCKED -> lockIn = (LockInfo) payload;
 			case TARGET_UNLOCKED, TARGET_LOST -> unlocksIn.add((UnlockInfo) payload);
 			case GHOST_PREDICTED -> ghostIn = (GhostInfo) payload;
+			case AIM_TURNING -> turningIn = true;
 			case GHOST_OTHER -> othersIn.add((GhostInfo) payload);
 			default -> {
 				// AIM_ALIGNED, AIM_MOVING and TARGET_UNREACHABLE carry the same GhostInfo as GHOST_PREDICTED, whose
@@ -193,6 +195,7 @@ public final class FeedbackLayer implements FeedbackListener {
 		hitsIn.clear();
 		lockIn = null;
 		ghostIn = null;
+		turningIn = false;
 		othersIn.clear();
 		unlocksIn.clear();
 	}
@@ -492,6 +495,10 @@ public final class FeedbackLayer implements FeedbackListener {
 			return;
 		}
 		double alpha = ease(th, "animation.easing", lock.value);
+		if (turningIn) {
+			// Mode B: the box flashes while the camera is still turning.
+			alpha *= 0.5D + 0.5D * Math.sin(seconds * th.num("locked.turningFlashHz") * 2.0D * Math.PI);
+		}
 		double k = Easing.apply(th.str("animation.hitEasing"), aligned.value);
 		Vec3 eye = lastFrame != null ? lastFrame.eye() : lastLock.box().getCenter();
 		drawFrame(th, lastLock.box(), "locked", "aligned", k, Math.max(0.0D, Math.min(1.0D, aligned.value)), alpha,

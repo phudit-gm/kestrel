@@ -34,6 +34,20 @@ public final class KestrelSettings {
 	/** How many unlocked candidates (nearest first) are predicted besides the locked one. */
 	public static final int PREDICT_MAX_OTHERS = 8;
 
+	// --- Mode B (Step 3) ---
+	/** Camera turn speed in Mode B. 360 degrees per second is about 0.25 s for a 90 degree turn. */
+	public static final double MODE_B_TURN_DEG_PER_SEC = 360.0D;
+	/** The camera counts as aligned when less than this many degrees are left to turn. */
+	public static final double MODE_B_ALIGNED_DEGREES = 0.5D;
+	/** Mouse movement (degrees of turn) that switches target in Mode B. */
+	public static final double MODE_B_SWITCH_THRESHOLD_DEGREES = 6.0D;
+	/** Ticks after a switch during which the mouse cannot switch again. */
+	public static final int MODE_B_SWITCH_COOLDOWN_TICKS = 10;
+	/** The accumulated mouse movement is multiplied by this every tick, so slow drift never adds up. */
+	public static final double MODE_B_ACCUM_DECAY = 0.9D;
+	/** Passes of the aim solver. */
+	public static final int AIM_SOLVER_ITERATIONS = 6;
+
 	// --- Lock filter (Step 5 will expose these in a config screen) ---
 	public static final boolean LOCK_HOSTILE_MOBS = true;
 	public static final boolean LOCK_PLAYERS = true;
