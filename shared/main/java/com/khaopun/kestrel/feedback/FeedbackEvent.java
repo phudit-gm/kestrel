@@ -18,6 +18,8 @@ public enum FeedbackEvent {
 	TARGET_LOST,
 	/** Every frame the predicted position is known (locked and drawing). Payload {@link GhostInfo}. */
 	GHOST_PREDICTED,
+	/** Every frame, once per unlocked candidate that is predicted. Payload {@link GhostInfo}. */
+	GHOST_OTHER,
 	/** Every frame the impact point touches the ghost. Payload {@link GhostInfo}. */
 	AIM_ALIGNED,
 	/** Every frame the ghost is known but the impact point is not on it. Payload {@link GhostInfo}. */

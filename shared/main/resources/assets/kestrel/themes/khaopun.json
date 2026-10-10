@@ -87,6 +87,8 @@
   },
 
   "ghost": {
+    "others": true,
+    "othersAlpha": 0.35,
     "frame": "pixelCorners",
     "color": { "mode": "gradient", "stops": ["#B58CFF80", "#FF7AC680"] },
     "inflate": 0.08,

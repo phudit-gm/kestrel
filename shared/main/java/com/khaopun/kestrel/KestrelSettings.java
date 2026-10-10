@@ -31,6 +31,9 @@ public final class KestrelSettings {
 	/** Milliseconds per tick, used to turn ping into ticks. */
 	public static final double MILLIS_PER_TICK = 50.0D;
 
+	/** How many unlocked candidates (nearest first) are predicted besides the locked one. */
+	public static final int PREDICT_MAX_OTHERS = 8;
+
 	// --- Lock filter (Step 5 will expose these in a config screen) ---
 	public static final boolean LOCK_HOSTILE_MOBS = true;
 	public static final boolean LOCK_PLAYERS = true;

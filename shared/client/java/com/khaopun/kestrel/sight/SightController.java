@@ -8,6 +8,7 @@ import com.khaopun.kestrel.core.LockRange;
 import com.khaopun.kestrel.core.Prediction;
 import com.khaopun.kestrel.core.Predictor;
 import com.khaopun.kestrel.core.ProjectileSimulator;
+import com.khaopun.kestrel.core.TargetMotion;
 import com.khaopun.kestrel.core.TrajectoryResult;
 import com.khaopun.kestrel.feedback.Candidate;
 import com.khaopun.kestrel.feedback.FeedbackBus;
@@ -103,6 +104,35 @@ public final class SightController {
 		}
 
 		emitPrediction(mc, player, start, power, result);
+		emitOthers(mc, player, start, power, lockable, partial);
+	}
+
+	/** Predicts the nearest unlocked candidates too, so the player can see where each one is heading. */
+	private static void emitOthers(Minecraft mc, LocalPlayer player, Vec3 start, float power, List<Entity> lockable, float partial) {
+		int budget = KestrelSettings.PREDICT_MAX_OTHERS;
+		double ping = pingMillis(mc, player);
+		Entity locked = LockController.target(mc);
+		for (Entity entity : lockable) {
+			if (budget <= 0) {
+				break;
+			}
+			if (entity == locked) {
+				continue;
+			}
+			TargetMotion motion = TargetTracker.motion(entity.getId());
+			if (motion == null || motion.isEmpty()) {
+				continue;
+			}
+			AABB box = entity.getBoundingBox();
+			Prediction prediction = Predictor.predict(motion, start, power, ping, (box.maxY - box.minY) / 2.0D);
+			if (prediction.kind() == Prediction.Kind.UNREACHABLE) {
+				continue;
+			}
+			Vec3 offset = entity.getPosition(partial).subtract(entity.position());
+			AABB ghost = box.move(offset).move(prediction.aim().subtract(entity.position()));
+			FeedbackBus.emit(FeedbackEvent.GHOST_OTHER, new GhostInfo(entity.getId(), ghost, prediction.kind(), false));
+			budget--;
+		}
 	}
 
 	/** Predicts where the locked target will be and announces whether the arrow's path touches that spot. */

@@ -125,6 +125,8 @@
   },
 
   "ghost": {
+    "others": true,
+    "othersAlpha": 0.35,
     "_comment": "predicted position of the locked target. fadedAlpha/jitter apply to erratic targets; fillAlpha 0 = outline only",
     "frame": "box",
     "color": "#FFFFFF",

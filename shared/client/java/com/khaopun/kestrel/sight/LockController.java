@@ -105,6 +105,7 @@ public final class LockController {
 
 	/** Runs every client tick. */
 	public static void onTick(Minecraft mc) {
+		TargetTracker.onTick(mc);
 		LocalPlayer player = mc.player;
 		Level level = mc.level;
 		if (player == null || level == null) {

@@ -88,6 +88,7 @@ public final class FeedbackLayer implements FeedbackListener {
 	private final Map<Integer, Candidate> hitsIn = new HashMap<>();
 	private LockInfo lockIn;
 	private GhostInfo ghostIn;
+	private final List<GhostInfo> othersIn = new ArrayList<>();
 	private final List<UnlockInfo> unlocksIn = new ArrayList<>();
 
 	// --- persistent state ---
@@ -130,6 +131,7 @@ public final class FeedbackLayer implements FeedbackListener {
 			case TARGET_LOCKED -> lockIn = (LockInfo) payload;
 			case TARGET_UNLOCKED, TARGET_LOST -> unlocksIn.add((UnlockInfo) payload);
 			case GHOST_PREDICTED -> ghostIn = (GhostInfo) payload;
+			case GHOST_OTHER -> othersIn.add((GhostInfo) payload);
 			default -> {
 				// AIM_ALIGNED, AIM_MOVING and TARGET_UNREACHABLE carry the same GhostInfo as GHOST_PREDICTED, whose
 				// flags the layer reads directly; no separate handling needed.
@@ -180,6 +182,7 @@ public final class FeedbackLayer implements FeedbackListener {
 		drawCandidates(th, seconds);
 		drawLock(th, seconds);
 		drawGhost(th, seconds);
+		drawOtherGhosts(th, seconds);
 		drawUnlockFx(th, seconds);
 		drawCrosshairLabels(th, seconds);
 
@@ -190,6 +193,7 @@ public final class FeedbackLayer implements FeedbackListener {
 		hitsIn.clear();
 		lockIn = null;
 		ghostIn = null;
+		othersIn.clear();
 		unlocksIn.clear();
 	}
 
@@ -523,6 +527,20 @@ public final class FeedbackLayer implements FeedbackListener {
 			text(th.str("ghost.unreachableText"),
 					new Vec3((box.minX + box.maxX) / 2.0D, box.maxY + th.num("ghost.labelHeightAbove"), (box.minZ + box.maxZ) / 2.0D),
 					th.color("unreachable.color").at(0.5D, seconds), alpha, th.num("ghost.labelScale"));
+		}
+	}
+
+	/** Faint ghosts of the unlocked candidates. Stateless: shown only on frames their event arrives. */
+	private void drawOtherGhosts(Theme th, double seconds) {
+		if (othersIn.isEmpty() || !th.enabled("ghost") || !th.bool("ghost.others")) {
+			return;
+		}
+		double alpha = th.num("ghost.othersAlpha");
+		Vec3 eye = lastFrame != null ? lastFrame.eye() : null;
+		for (GhostInfo info : othersIn) {
+			AABB box = info.ghost();
+			double a = alpha * (info.kind() == Prediction.Kind.FADED ? th.num("ghost.fadedAlpha") : 1.0D);
+			drawFrame(th, box, "ghost", "aligned", 0.0D, 0.0D, a, th.num("minAlpha"), seconds, eye != null ? eye : box.getCenter());
 		}
 	}
 
