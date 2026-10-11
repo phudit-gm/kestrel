@@ -25,7 +25,7 @@ public final class UserThemeFile {
 	private UserThemeFile() {
 	}
 
-	/** @param overrides dotted theme path to the new value; only values that changed should be in it */
+	/** @param overrides dotted theme path to the new value; only values that changed should be in it. A JSON null removes the override. */
 	public static void apply(String themeName, Map<String, JsonElement> overrides) {
 		Path file = ThemeStore.userFile();
 		JsonObject root = new JsonObject();
@@ -41,7 +41,11 @@ public final class UserThemeFile {
 		JsonObject existing = root.has("overrides") && root.get("overrides").isJsonObject()
 				? root.getAsJsonObject("overrides") : new JsonObject();
 		for (Map.Entry<String, JsonElement> e : overrides.entrySet()) {
-			existing.add(e.getKey(), e.getValue());
+			if (e.getValue().isJsonNull()) {
+				existing.remove(e.getKey());
+			} else {
+				existing.add(e.getKey(), e.getValue());
+			}
 		}
 		root.add("overrides", existing);
 		try {

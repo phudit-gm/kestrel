@@ -71,6 +71,12 @@ public final class ThemeStore {
 		return problems;
 	}
 
+	/** The named bundled theme with none of the user's changes, so the config screen's reset button has a real default. */
+	public static Theme defaults(String themeName) {
+		String json = "{\"theme\": \"" + themeName + "\"}";
+		return ThemeLoader.load(ThemeStore::bundled, json, Kestrel.LOGGER, problem -> { });
+	}
+
 	private static String bundled(String name) {
 		if (!name.matches("[A-Za-z0-9_-]+")) {
 			return null;

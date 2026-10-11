@@ -15,3 +15,4 @@ First public beta. Minecraft 1.21.11, 26.2, 26.3.
 - Servers can switch features off with scoreboard teams (`ks_off_*`); datapack `kestrel_rules` included.
 - Settings screen (Cloth Config + Mod Menu), themes `pixel_gradient` (default, formerly `khaopun`) and `classic`.
 - Opt-in shot log for testing.
+- In the settings screen, the reset button on each option goes back to the shipped default, also after Save and reopening.

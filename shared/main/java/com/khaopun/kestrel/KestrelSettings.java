@@ -15,7 +15,7 @@ public final class KestrelSettings {
 	/** While locked, the key switches to another candidate only if the crosshair is within this angle of it. */
 	public static final double LOCK_SWITCH_ANGLE_DEGREES = 6.0D;
 	/** Unlock after the target has had no line of sight for this many ticks. */
-	public static volatile int LOCK_NO_LINE_OF_SIGHT_TICKS = 40;
+	public static volatile int LOCK_NO_LINE_OF_SIGHT_TICKS = Defaults.NO_LINE_OF_SIGHT_TICKS;
 
 	// --- Motion tracking and prediction (Step 2) ---
 	/** Number of recent ticks of target movement kept. */
@@ -38,52 +38,80 @@ public final class KestrelSettings {
 	public static final double MILLIS_PER_TICK = 50.0D;
 
 	/** How many unlocked candidates (nearest first) are predicted besides the locked one. */
-	public static volatile int PREDICT_MAX_OTHERS = 8;
+	public static volatile int PREDICT_MAX_OTHERS = Defaults.PREDICT_MAX_OTHERS;
 
 	// --- Mode B (Step 3) ---
 	/** Camera turn speed in Mode B. 360 degrees per second is about 0.25 s for a 90 degree turn. */
-	public static volatile double MODE_B_TURN_DEG_PER_SEC = 360.0D;
+	public static volatile double MODE_B_TURN_DEG_PER_SEC = Defaults.MODE_B_TURN_DEG_PER_SEC;
 	/** The camera counts as aligned when less than this many degrees are left to turn. */
 	public static final double MODE_B_ALIGNED_DEGREES = 0.5D;
 	/** Mouse movement (degrees of turn) that switches target in Mode B. */
-	public static volatile double MODE_B_SWITCH_THRESHOLD_DEGREES = 6.0D;
+	public static volatile double MODE_B_SWITCH_THRESHOLD_DEGREES = Defaults.MODE_B_SWITCH_THRESHOLD_DEGREES;
 	/** Ticks after a switch during which the mouse cannot switch again. */
-	public static volatile int MODE_B_SWITCH_COOLDOWN_TICKS = 10;
+	public static volatile int MODE_B_SWITCH_COOLDOWN_TICKS = Defaults.MODE_B_SWITCH_COOLDOWN_TICKS;
 	/** The accumulated mouse movement is multiplied by this every tick, so slow drift never adds up. */
 	public static final double MODE_B_ACCUM_DECAY = 0.9D;
 	/** Mode B aims for the head when the target stands on the ground and the head is in the open; otherwise the middle of the hitbox. */
-	public static volatile boolean MODE_B_AIM_HEAD = true;
+	public static volatile boolean MODE_B_AIM_HEAD = Defaults.MODE_B_AIM_HEAD;
 	/** Seconds the aim point stays on head or body before it may change again, so a hopping target does not make the camera jitter. */
 	public static final double MODE_B_AIM_SWITCH_SECONDS = 0.25D;
 	/** Passes of the aim solver. */
 	public static final int AIM_SOLVER_ITERATIONS = 6;
 
 	/** Logs where each shot at a predicted target really landed ([kestrel-shot] in latest.log). Off by default. */
-	public static volatile boolean DEBUG_SHOT_LOG = false;
+	public static volatile boolean DEBUG_SHOT_LOG = Defaults.DEBUG_SHOT_LOG;
 
 	// --- Lock filter: which kinds of entity may be targeted ---
 	// Mode A (preview) and Mode B (camera turns by itself) have their own sets, so Mode B can be stricter.
-	public static volatile boolean LOCK_PLAYERS = true;
-	public static volatile boolean LOCK_HOSTILE_MOBS = true;
-	public static volatile boolean LOCK_ANIMALS = false;
-	public static volatile boolean LOCK_VILLAGERS = false;
-	public static volatile boolean LOCK_OTHER = false;
-	public static volatile boolean LOCK_EXCLUDE_TAMED = true;
-	public static volatile boolean MODE_B_LOCK_PLAYERS = false;
-	public static volatile boolean MODE_B_LOCK_HOSTILE_MOBS = true;
-	public static volatile boolean MODE_B_LOCK_ANIMALS = false;
-	public static volatile boolean MODE_B_LOCK_VILLAGERS = false;
-	public static volatile boolean MODE_B_LOCK_OTHER = false;
+	public static volatile boolean LOCK_PLAYERS = Defaults.LOCK_PLAYERS;
+	public static volatile boolean LOCK_HOSTILE_MOBS = Defaults.LOCK_HOSTILE_MOBS;
+	public static volatile boolean LOCK_ANIMALS = Defaults.LOCK_ANIMALS;
+	public static volatile boolean LOCK_VILLAGERS = Defaults.LOCK_VILLAGERS;
+	public static volatile boolean LOCK_OTHER = Defaults.LOCK_OTHER;
+	public static volatile boolean LOCK_EXCLUDE_TAMED = Defaults.LOCK_EXCLUDE_TAMED;
+	public static volatile boolean MODE_B_LOCK_PLAYERS = Defaults.MODE_B_LOCK_PLAYERS;
+	public static volatile boolean MODE_B_LOCK_HOSTILE_MOBS = Defaults.MODE_B_LOCK_HOSTILE_MOBS;
+	public static volatile boolean MODE_B_LOCK_ANIMALS = Defaults.MODE_B_LOCK_ANIMALS;
+	public static volatile boolean MODE_B_LOCK_VILLAGERS = Defaults.MODE_B_LOCK_VILLAGERS;
+	public static volatile boolean MODE_B_LOCK_OTHER = Defaults.MODE_B_LOCK_OTHER;
 	/** Entity ids (minecraft:creeper, or modid:* for a whole mod) that are always targetable in both modes. */
-	public static volatile java.util.List<String> LOCK_ALWAYS_IDS = java.util.List.of();
+	public static volatile java.util.List<String> LOCK_ALWAYS_IDS = Defaults.IDS;
 	/** Entity ids that are never targetable; wins over the always list. */
-	public static volatile java.util.List<String> LOCK_NEVER_IDS = java.util.List.of();
+	public static volatile java.util.List<String> LOCK_NEVER_IDS = Defaults.IDS;
 
 	// --- Mode B availability ---
 	/** Master switch for Mode B on this client. A server can switch it off too (see ServerPolicy). */
-	public static volatile boolean MODE_B_ENABLED = true;
+	public static volatile boolean MODE_B_ENABLED = Defaults.MODE_B_ENABLED;
 	/** Show the fair-play warning in chat the first time Mode B is chosen on a multiplayer server each session. */
-	public static volatile boolean MODE_B_SERVER_WARNING = true;
+	public static volatile boolean MODE_B_SERVER_WARNING = Defaults.MODE_B_SERVER_WARNING;
+
+	/** The values the mod ships with; the config screen's reset button goes back to these. */
+	public static final class Defaults {
+		public static final int NO_LINE_OF_SIGHT_TICKS = 40;
+		public static final int PREDICT_MAX_OTHERS = 8;
+		public static final double MODE_B_TURN_DEG_PER_SEC = 360.0D;
+		public static final double MODE_B_SWITCH_THRESHOLD_DEGREES = 6.0D;
+		public static final int MODE_B_SWITCH_COOLDOWN_TICKS = 10;
+		public static final boolean MODE_B_AIM_HEAD = true;
+		public static final boolean DEBUG_SHOT_LOG = false;
+		public static final boolean LOCK_PLAYERS = true;
+		public static final boolean LOCK_HOSTILE_MOBS = true;
+		public static final boolean LOCK_ANIMALS = false;
+		public static final boolean LOCK_VILLAGERS = false;
+		public static final boolean LOCK_OTHER = false;
+		public static final boolean LOCK_EXCLUDE_TAMED = true;
+		public static final boolean MODE_B_LOCK_PLAYERS = false;
+		public static final boolean MODE_B_LOCK_HOSTILE_MOBS = true;
+		public static final boolean MODE_B_LOCK_ANIMALS = false;
+		public static final boolean MODE_B_LOCK_VILLAGERS = false;
+		public static final boolean MODE_B_LOCK_OTHER = false;
+		public static final boolean MODE_B_ENABLED = true;
+		public static final boolean MODE_B_SERVER_WARNING = true;
+		public static final java.util.List<String> IDS = java.util.List.of();
+
+		private Defaults() {
+		}
+	}
 
 	private KestrelSettings() {
 	}
