@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Server owner? Switch features off with a datapack
+    url: https://github.com/phudit-gm/kestrel#for-server-owners
+    about: Scoreboard-team rules and the kestrel_rules datapack are explained in the README.

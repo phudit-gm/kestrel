@@ -1,0 +1,77 @@
+name: Bug report
+description: Something in Kestrel does not work or looks wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Kestrel is in beta, so reports are very welcome. The more of this you fill in, the faster it can be fixed.
+  - type: input
+    id: version
+    attributes:
+      label: Kestrel version
+      placeholder: 1.0.0-beta.1
+    validations:
+      required: true
+  - type: dropdown
+    id: minecraft
+    attributes:
+      label: Minecraft version
+      options: ["1.21.11", "26.2", "26.3", "Other (say which below)"]
+    validations:
+      required: true
+  - type: input
+    id: mods
+    attributes:
+      label: Fabric Loader, Fabric API, Cloth Config, Mod Menu versions
+      description: Also list shader packs and other mods that touch rendering, aiming or bows (Iris, Sodium, Better Combat, ...).
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it happen
+      options: ["Singleplayer", "Multiplayer server", "Both"]
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options: ["Mode A (preview)", "Mode B (auto aim)", "Both", "Not related to a mode (settings screen, install, ...)"]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Weapon, target type, distance, whether the target was moving, which settings you changed.
+      placeholder: |
+        1. Hold a bow, draw it
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: shotlog
+    attributes:
+      label: Shot log (only for aim or prediction problems)
+      description: |
+        Turn on Mod Menu > Kestrel > Config > Limits > "Log every shot's accuracy", repeat the shots, then paste the
+        `[kestrel-shot]` lines from `logs/latest.log`.
+      render: text
+  - type: textarea
+    id: log
+    attributes:
+      label: Log or crash report
+      description: Paste `logs/latest.log` (or the crash report) as a file or on a paste site, not as plain text if it is long.
+  - type: textarea
+    id: files
+    attributes:
+      label: Screenshot or video
+      description: Drag it here. For settings problems, `config/kestrel/settings.json` and `theme.json` help.
